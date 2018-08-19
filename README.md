@@ -50,4 +50,4 @@ This part is being written at the moment
 ## License
 
 Copyright (c) Jim Karoukis.
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
