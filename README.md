@@ -47,6 +47,14 @@ make test2
 
 This part is being written at the moment
 
+## Donations
+
+If you like my work and/or you want to use it for your own projects or want me to create a custom recipe for you, I would gladly accept your donations at:
+
+BTC: 1HzxXZPQSNg7U53XoBSWCpugKUg5DaZELu
+
+ETH: 0xf09fce52f7ecd940cae2826deae151b6495354f6
+
 ## License
 
 Copyright (c) Jim Karoukis.
