@@ -4,15 +4,12 @@
 
 extern void activate(double *X_active, double *X, int threshold, char *);
 extern void gradient(double *X_graded, double *X, int threshold, char *);
-extern void activate_rbf(double *X_active, double *X,
-												 double center, double spread,
-												 int p, int threshold, char *);
+extern void activate_rbf(double *X_active, double *X, double center, double spread, int p, int threshold, char *);
 extern void minkowski(double *X, double *Y, int p, int threshold);
 extern void randomize(double *X, int rows, int columns_X);
 extern void normalize(double *X, int rows, int columns_X);
-extern double ***init_wb(double variance, 
-												 int layers, int nodes[layers], char funcs[layers][30],
-												 int columns_Y, int columns_X);
+extern double ***init_wb(double variance, int layers, int nodes[layers], char funcs[layers][30],
+                         int columns_Y, int columns_X);
 extern double rand_normal(double mu, double sigma);
 extern double rmse(int rows, int columns_Y, double *Y, double *Z_active);
 

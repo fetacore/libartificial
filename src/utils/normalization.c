@@ -23,9 +23,9 @@ double stdev(int rows, double col[rows], double mean) {
 // Takes an x matrix with each column representing different variables
 // and each row representing values of each variable
 void normalize(double *X, int rows, int columns) {
-	int i, j;
+  int i, j;
   double m = 0.0, sd = 0.0, col[rows];
-	
+  
   for (j = 0; j < columns; j++) {
     for (i = 0; i < rows; i++) {
       col[i] = X[i * columns + j];

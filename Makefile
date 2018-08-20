@@ -1,10 +1,6 @@
-DLLEXT := .so
-SRCS := src/neurons/feedforward.c
-SRCS += src/utils/activations.c src/utils/gradients.c
-SRCS += src/utils/normalization.c src/utils/initialization.c src/utils/randomization.c
-SRCS += src/utils/loss.c src/utils/freedom.c src/utils/rnormal.c src/utils/row_sum.c 
-SRCS += src/training/update_gd.c src/training/deltas_gd.c src/training/feedforward_update.c
-SRCS += src/prints/prints.c
+DLLEXT = .so
+
+SRCS = $(wildcard src/*/*.c)
 
 CC = gcc
 CFLAGS = -fPIC -Wall -Wextra -march=native -O3 -g -pedantic-errors
@@ -30,14 +26,14 @@ include $(SRCS:.c=.d)
 
 .PHONY: test1
 test1:
-	make clean
+	make clean &&\
 	cd ./examples/;\
 	$(CC) -L../ -Wl,-rpath=../ -Wall -o ./test1 ./mlp_reg.c -lm -lartificial;\
 	./test1
 
 .PHONY: test2
 test2:
-	make clean
+	make clean &&\
 	cd ./examples/;\
 	$(CC) -L../ -Wl,-rpath=../ -Wall -o ./test2 ./autoencoder.c -lm -lartificial;\
 	./test2
@@ -49,3 +45,4 @@ clean:
 .PHONY: cleanall
 cleanall:
 	-${RM} ${TARGET_LIB} ${OBJS} $(SRCS:.c=.d)
+	
