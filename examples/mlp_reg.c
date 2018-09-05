@@ -29,16 +29,16 @@ int main(void)
   
   double *Y = malloc(rows * columns_Y * sizeof(double));
   for (i = 0; i < rows; i++) {
-    Y[i] = 8 * pow(X[i * columns_X], 2) - 5 * sqrt(X[i * columns_X + 1]) - sin(X[i * columns_X + 2]);
+    Y[i] = 8 * pow(X[i * columns_X], 2) - 5 * sqrt(X[i * columns_X + 1]) - sin(X[i * columns_X + 2]) + rand_normal(0,1);
   }
   ///////////////////////////////////////////////////////////////////////////
   
   // Hyperparameters
   ///////////////////////////////////////////////////////////////////////////
-  int batch = 256; // Divisor of 1024
+  int batch = 64; // Divisor of 1024
   double w_variance = 0.01; // For the weight initialization
   double learning_rate = 0.000000001;
-  int epochs = 1000;
+  int epochs = 10;
   
   int layers = 7;
   int nodes[7] = {62, 23, 397, 540, 408, 390, 48};
@@ -48,7 +48,7 @@ int main(void)
     "tanh",
     "lrelu",
     "gauss",
-    "logistic",
+    "softmax",
     "gauss",
     "linear" // Regression and not classification (if classification something other than linear)
   };

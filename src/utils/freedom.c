@@ -24,3 +24,13 @@ void delete_wb(int layers, double ***wb)
   free(wb[0]);
   free(wb);
 }
+
+void delete_img_vector(int **images, int no_of_images)
+{
+  int image;
+  
+  for (image = 0; image < no_of_images; image++) {
+    free(images[image]);
+  }
+  free(images);
+}

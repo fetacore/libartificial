@@ -38,6 +38,13 @@ test2:
 	$(CC) -L../ -Wl,-rpath=../ -Wall -o ./test2 ./autoencoder.c -lm -lartificial;\
 	./test2
 
+.PHONY: test3
+test3:
+	make clean &&\
+	cd ./examples/;\
+	$(CC) -L../ -Wl,-rpath=../ -Wall -o ./test3 ./cnn.c -lm -lartificial;\
+	./test3
+
 .PHONY: clean
 clean:
 	-${RM} ${OBJS} $(SRCS:.c=.d)

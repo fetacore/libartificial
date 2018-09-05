@@ -35,15 +35,17 @@ void delta_gd(double **deltas, int rows, int columns_Y, int layers, double *Y, d
       break;
   }
   
-  for (l = layers - 1; l >= 0; l--) {
+  l = layers - 1;
+  while (l >= 0) {
     for_helper = rows * nodes[l];
     
     help_1[l] = malloc(for_helper * sizeof(double));
     help_2[l] = malloc(for_helper * sizeof(double));
     
     gradient(help_1[l], Z[0][l], for_helper, funcs[l]);
-    for (i = 0; i < for_helper; i++) {
-      help_2[l][i] = 0.0;
+    i = for_helper;
+    while (i >= 0) {
+      help_2[l][i--] = 0.0;
     }
     
     switch (l == layers - 1) {
@@ -60,8 +62,9 @@ void delta_gd(double **deltas, int rows, int columns_Y, int layers, double *Y, d
                     help_2[l], nodes[l]); // C, ldC
         
         // Hadamard product
-        for (i = 0; i < for_helper; i++) {
-          deltas[l][i] = help_1[l][i] * help_2[l][i];
+        i = for_helper;
+        while (i >= 0) {
+          deltas[l][i--] = help_1[l][i] * help_2[l][i];
         }
         
         free(help_2[l]);
@@ -82,8 +85,9 @@ void delta_gd(double **deltas, int rows, int columns_Y, int layers, double *Y, d
                     help_2[l], nodes[l]); // C, ldC
         
         // Hadamard product
-        for (i = 0; i < for_helper; i++) {
-          deltas[l][i] = help_1[l][i] * help_2[l][i];
+        i = for_helper;
+        while (i >= 0) {
+          deltas[l][i--] = help_1[l][i] * help_2[l][i];
         }
         
         free(help_2[l]);
@@ -91,6 +95,7 @@ void delta_gd(double **deltas, int rows, int columns_Y, int layers, double *Y, d
         
         break;
     }
+    l--;
   }
   free(help_2);
   free(help_1);

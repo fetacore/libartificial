@@ -14,7 +14,7 @@ void feedforward_update(double ***Z, int rows, int columns_Y, int columns_X, int
   // l is for layers
   // i for each row
   // j for columns at each layer
-  int l, i, j, for_helper = rows * nodes[0];
+  int l, i = rows, j, for_helper = rows * nodes[0];
   
   // Input layer
   cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
@@ -27,9 +27,9 @@ void feedforward_update(double ***Z, int rows, int columns_Y, int columns_X, int
               1.0, // scaling factor for C (none)
               Z[0][0], nodes[0]); // C, ldC
   
-  for (i = 0; i < rows; i++) {
-    for (j = 0; j < nodes[0]; j++) {
-      Z[0][0][i * nodes[0] + j] += wb[1][0][j];
+  while (i >= 0) {
+    for (j = nodes[0]; j--; ) {
+      Z[0][0][i-- * nodes[0] + j] += wb[1][0][j];
     }
   }
   activate(Z[1][0], Z[0][0], for_helper, funcs[0]);
@@ -39,8 +39,10 @@ void feedforward_update(double ***Z, int rows, int columns_Y, int columns_X, int
     case 0:
       break;
     default:
-      for (l = 1; l < layers; l++) {
+      l = layers - 1;
+      while (l >= 1) {
         for_helper = rows * nodes[l];
+        i = rows;
         
         cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
                     rows, // Rows of z[0][l][i][j]
@@ -52,18 +54,20 @@ void feedforward_update(double ***Z, int rows, int columns_Y, int columns_X, int
                     1.0, // scaling factor for C (none)
                     Z[0][l], nodes[l]); // C, ldC
         
-        for (i = 0; i < rows; i++) {
-          for (j = 0; j < nodes[l]; j++) {
-            Z[0][l][i * nodes[l] + j] += wb[1][l][j];
+        while (i >= 0) {
+          for (j = nodes[l]; j--; ) {
+            Z[0][l][i-- * nodes[l] + j] += wb[1][l][j];
           }
         }
         activate(Z[1][l], Z[0][l], for_helper, funcs[l]);
+        l--;
       }
       break;
   }
   
   // Output layer
   for_helper = rows * columns_Y;
+  i = rows;
   
   cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
               rows, // Rows of z[0][l][i][j]
@@ -75,9 +79,9 @@ void feedforward_update(double ***Z, int rows, int columns_Y, int columns_X, int
               1.0, // scaling factor for C (none)
               Z[0][layers], columns_Y); // C, ldC
   
-  for (i = 0; i < rows; i++) {
-    for (j = 0; j < columns_Y; j++) {
-      Z[0][layers][i * columns_Y + j] += wb[1][layers][j];
+  while (i >= 0) {
+    for (j = columns_Y; j--; ) {
+      Z[0][layers][i-- * columns_Y + j] += wb[1][layers][j];
     }
   }
   activate(Z[1][layers], Z[0][layers], for_helper, funcs[layers]);

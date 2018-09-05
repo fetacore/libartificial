@@ -16,8 +16,17 @@ extern double rmse(int rows, int columns_Y, double *Y, double *Z_active);
 // Training utility
 extern void row_sum(double *row_sum, double *matrix, int rows, int columns);
 
+// Convolution utility
+extern int **im2col(int ***images, int no_of_images, int img_width, int img_height, int img_channels,
+                    int spatial, // width and height of weights
+                    int stride, // (img_width - spatial + 2 * padding)/stride should be int
+                    int padding, // Zeros around
+                    int delete_originals // 0 if no, 1 if yes (keep only vectorized in memory)
+                  );
+
 // Freedom
 extern void delete_wb(int layers, double ***wb);
 extern void delete_Z(int layers, double ***Z);
+extern void delete_img_vector(int **images, int no_of_images);
 
 #endif  // utils_h__

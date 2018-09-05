@@ -21,7 +21,7 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
   // i for rows
   // j for columns
   // e for epochs
-  int l, i, j, e;
+  int l, i, j, e = epochs;
   
   // In case of mini-batching or stochastic
   // b for batch
@@ -121,7 +121,7 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
       correction = learning_rate * 1.0/(double)rows;
       
       // The training
-      for (e = epochs; e--; ) {
+      while (e != 0) {
         printf("%.10lf\n", loss);
         // Find deltas
         delta_gd(deltas, rows, columns_Y, layers, Y, Z, wb, nodes, funcs);
@@ -141,11 +141,13 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
         
         row_sum(deltas_row_sum[0], deltas[0], rows, nodes[0]);
         
-        for (i = 0; i < for_helper_w; i++) {
-          wb[0][0][i] -= correction * grad_w[0][i];
+        while (for_helper_w >= 0) {
+          wb[0][0][for_helper_w--] -= correction * grad_w[0][for_helper_w];
         }
-        for (j = 0; j < nodes[0]; j++) {
-          wb[1][0][j] -= correction * deltas_row_sum[0][j];
+        
+        j = nodes[0];
+        while (j >= 0) {
+          wb[1][0][j--] -= correction * deltas_row_sum[0][j];
         }
         
         // Intermediate layers (if more than one hidden)
@@ -154,7 +156,8 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
           case 0:
             break;
           default:
-            for (l = 1; l < layers; l++) {
+            l = layers - 1;
+            while (l >= 1) {
               for_helper_w = nodes[l-1] * nodes[l];
               
               cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
@@ -169,12 +172,15 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
               
               row_sum(deltas_row_sum[l], deltas[l], rows, nodes[l]);
               
-              for (i = 0; i < for_helper_w; i++) {
-                wb[0][l][i] -= correction * grad_w[l][i];
+              while (for_helper_w >= 0) {
+                wb[0][l][for_helper_w--] -= correction * grad_w[l][for_helper_w];
               }
-              for (j = 0; j < nodes[l]; j++) {
-                wb[1][l][j] -= correction * deltas_row_sum[l][j];
+              
+              j = nodes[l];
+              while (j >= 0) {
+                wb[1][l][j--] -= correction * deltas_row_sum[l][j];
               }
+              l--;
             }
             break;
         }
@@ -194,11 +200,13 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
         
         row_sum(deltas_row_sum[layers], deltas[layers], rows, columns_Y);
         
-        for (i = 0; i < for_helper_w; i++) {
-          wb[0][layers][i] -= correction * grad_w[layers][i];
+        while (for_helper_w >= 0) {
+          wb[0][layers][for_helper_w--] -= correction * grad_w[layers][for_helper_w];
         }
-        for (j = 0; j < columns_Y; j++) {
-          wb[1][layers][j] -= correction * deltas_row_sum[layers][j];
+        
+        j = columns_Y;
+        while (j >= 0) {
+          wb[1][layers][j--] -= correction * deltas_row_sum[layers][j];
         }
         
         // Update Zs with the new wb's
@@ -217,6 +225,7 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
           free(grad_w);
           return;
         }
+        --e;
       }
       break;
     default:
@@ -267,7 +276,7 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
         }
       }
       
-      for (e = epochs; e--; ) {
+      while (e != 0) {
         printf("%.10lf\n", loss);
         
         i = 0;
@@ -316,11 +325,13 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
           
           row_sum(deltas_row_sum[0], deltas[0], batch, nodes[0]);
           
-          for (j = 0; j < for_helper_w; j++) {
-            wb[0][0][j] -= correction * grad_w[0][j];
+          while (for_helper_w >= 0) {
+            wb[0][0][for_helper_w--] -= correction * grad_w[0][for_helper_w];
           }
-          for (j = 0; j < nodes[0]; j++) {
-            wb[1][0][j] -= correction * deltas_row_sum[0][j];
+          
+          j = nodes[0];
+          while (j >= 0) {
+            wb[1][0][j--] -= correction * deltas_row_sum[0][j];
           }
           
           // Intermediate layers (if they exist i.e. more than one hidden layer)
@@ -328,7 +339,8 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
             case 0:
               break;
             default:
-              for (l = 1; l < layers; l++) {
+              l = layers - 1;
+              while (l >= 1) {
                 for_helper_w = nodes[l-1] * nodes[l];
                 
                 cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
@@ -343,12 +355,15 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
                 
                 row_sum(deltas_row_sum[l], deltas[l], batch, nodes[l]);
                 
-                for (j = 0; j < for_helper_w; j++) {
-                  wb[0][l][j] -= correction * grad_w[l][j];
+                while (for_helper_w >= 0) {
+                  wb[0][l][for_helper_w--] -= correction * grad_w[l][for_helper_w];
                 }
-                for (j = 0; j < nodes[l]; j++) {
-                  wb[1][l][j] -= correction * deltas_row_sum[l][j];
+                
+                j = nodes[l];
+                while (j >= 0) {
+                  wb[1][l][j--] -= correction * deltas_row_sum[l][j];
                 }
+                l--;
               }
               break;
           }
@@ -368,11 +383,13 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
           
           row_sum(deltas_row_sum[layers], deltas[layers], batch, columns_Y);
           
-          for (j = 0; j < for_helper_w; j++) {
-            wb[0][layers][j] -= correction * grad_w[layers][j];
+          while (for_helper_w >= 0) {
+            wb[0][layers][for_helper_w--] -= correction * grad_w[layers][for_helper_w];
           }
-          for (j = 0; j < columns_Y; j++) {
-            wb[1][layers][j] -= correction * deltas_row_sum[layers][j];
+          
+          j = columns_Y;
+          while (j >= 0) {
+            wb[1][layers][j--] -= correction * deltas_row_sum[layers][j];
           }
           
           // Do an update of Z's with the new wb's
@@ -404,6 +421,7 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
           free(grad_w);
           return;
         }
+        --e;
       }
       
       // End of batching
