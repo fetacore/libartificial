@@ -26,8 +26,9 @@ void delta_gd(double **deltas, int rows, int columns_Y, int layers, double *Y, d
   
   switch (strcmp(funcs[layers], "linear")) {
     case 0:
-      for (i = 0; i < for_helper; i++) {
-        deltas[layers][i] = Z[1][layers][i] - Y[i];
+      i = for_helper - 1;
+      while (i >= 0) {
+        deltas[layers][i--] = Z[1][layers][i] - Y[i];
       }
       break;
     default:
@@ -69,9 +70,9 @@ void delta_gd(double **deltas, int rows, int columns_Y, int layers, double *Y, d
         
         free(help_2[l]);
         free(help_1[l]);
-        
-        break;
-        // False
+        l--;
+        continue;
+      // False
       default:
         // find help_2
         cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
@@ -92,10 +93,9 @@ void delta_gd(double **deltas, int rows, int columns_Y, int layers, double *Y, d
         
         free(help_2[l]);
         free(help_1[l]);
-        
-        break;
+        l--;
+        continue;
     }
-    l--;
   }
   free(help_2);
   free(help_1);

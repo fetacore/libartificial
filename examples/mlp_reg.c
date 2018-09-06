@@ -35,13 +35,13 @@ int main(void)
   
   // Hyperparameters
   ///////////////////////////////////////////////////////////////////////////
-  int batch = 64; // Divisor of 1024
+  int batch = 256; // Divisor of 1024
   double w_variance = 0.01; // For the weight initialization
   double learning_rate = 0.000000001;
-  int epochs = 10;
+  int epochs = 14;
   
   int layers = 7;
-  int nodes[7] = {62, 23, 397, 540, 408, 390, 48};
+  int nodes[7] = {3200, 230, 397, 540, 408, 390, 480};
   char funcs[8][30] = {
     "logistic",
     "relu",
@@ -94,6 +94,8 @@ int main(void)
   // wb[1][l][j] biases at layer l=0,...,layers always 1 row and j'th column
   double ***wb = init_wb(w_variance, layers, nodes, funcs, columns_Y, columns_X);
   
+  //  double ***wb = load_wb(layers, nodes, columns_Y, columns_X);
+  
   // 	showWB(layers, nodes, columns_Y, columns_X, wb);
   
   // The outputs from neurons
@@ -104,8 +106,10 @@ int main(void)
   // All the updating in one function (manipulates wb)
   update_gd(rows, columns_Y, columns_X, batch, layers, nodes, Y, X, Z, wb, funcs, learning_rate, epochs);
   
-  // 	showWB(layers, nodes, columns_Y, columns_X, wb);
+//   showWB(layers, nodes, columns_Y, columns_X, wb);
   
+  save_wb(wb, layers, nodes, columns_Y, columns_X);
+
   ////////////////////////////////////////////////////////////
   // Freeing stuff
   ////////////////////////////////////////////////////////////

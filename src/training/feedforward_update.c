@@ -14,7 +14,7 @@ void feedforward_update(double ***Z, int rows, int columns_Y, int columns_X, int
   // l is for layers
   // i for each row
   // j for columns at each layer
-  int l, i = rows, j, for_helper = rows * nodes[0];
+  int l, for_helper = rows * nodes[0], i = for_helper - 1, j = nodes[0] - 1;
   
   // Input layer
   cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
@@ -28,9 +28,10 @@ void feedforward_update(double ***Z, int rows, int columns_Y, int columns_X, int
               Z[0][0], nodes[0]); // C, ldC
   
   while (i >= 0) {
-    for (j = nodes[0]; j--; ) {
-      Z[0][0][i-- * nodes[0] + j] += wb[1][0][j];
+    if (j < 0) {
+      j = nodes[0] - 1;
     }
+    Z[0][0][i--] += wb[1][0][j--];
   }
   activate(Z[1][0], Z[0][0], for_helper, funcs[0]);
   
@@ -42,7 +43,8 @@ void feedforward_update(double ***Z, int rows, int columns_Y, int columns_X, int
       l = layers - 1;
       while (l >= 1) {
         for_helper = rows * nodes[l];
-        i = rows;
+        i = for_helper - 1;
+        j = nodes[l] - 1;
         
         cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
                     rows, // Rows of z[0][l][i][j]
@@ -55,9 +57,10 @@ void feedforward_update(double ***Z, int rows, int columns_Y, int columns_X, int
                     Z[0][l], nodes[l]); // C, ldC
         
         while (i >= 0) {
-          for (j = nodes[l]; j--; ) {
-            Z[0][l][i-- * nodes[l] + j] += wb[1][l][j];
+          if (j < 0) {
+            j = nodes[l] - 1;
           }
+          Z[0][l][i--] += wb[1][l][j--];
         }
         activate(Z[1][l], Z[0][l], for_helper, funcs[l]);
         l--;
@@ -67,7 +70,8 @@ void feedforward_update(double ***Z, int rows, int columns_Y, int columns_X, int
   
   // Output layer
   for_helper = rows * columns_Y;
-  i = rows;
+  i = for_helper - 1;
+  j = columns_Y - 1;
   
   cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
               rows, // Rows of z[0][l][i][j]
@@ -80,9 +84,10 @@ void feedforward_update(double ***Z, int rows, int columns_Y, int columns_X, int
               Z[0][layers], columns_Y); // C, ldC
   
   while (i >= 0) {
-    for (j = columns_Y; j--; ) {
-      Z[0][layers][i-- * columns_Y + j] += wb[1][layers][j];
+    if (j < 0) {
+      j = columns_Y - 1;
     }
+    Z[0][layers][i--] += wb[1][layers][j];
   }
   activate(Z[1][layers], Z[0][layers], for_helper, funcs[layers]);
 }

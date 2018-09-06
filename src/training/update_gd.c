@@ -15,7 +15,7 @@
 
 void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, int nodes[layers],
                double *Y, double *X, double ***Z, double ***wb,
-               char funcs[layers+1][30], double learning_rate, int epochs)
+               char funcs[layers + 1][30], double learning_rate, int epochs)
 {
   // l for layers
   // i for rows
@@ -52,9 +52,9 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
     switch (i < nodes[0]) {
       case 1:
         deltas_row_sum[0][i] = 0.0;
-        break;
+        continue;
       default:
-        break;
+        continue;
     }
   }
   
@@ -76,9 +76,9 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
           switch (i < nodes[l]) {
             case 1:
               deltas_row_sum[l][i] = 0.0;
-              break;
+              continue;
             default:
-              break;
+              continue;
           }
         }
         
@@ -102,9 +102,9 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
     switch (i < columns_Y) {
       case 1:
         deltas_row_sum[layers][i] = 0.0;
-        break;
+        continue;
       default:
-        break;
+        continue;
     }
   }
   
@@ -122,7 +122,9 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
       
       // The training
       while (e != 0) {
-        printf("%.10lf\n", loss);
+        if (loss != 0.0) {
+          printf("%.10lf\n", loss);
+        }
         // Find deltas
         delta_gd(deltas, rows, columns_Y, layers, Y, Z, wb, nodes, funcs);
         
@@ -141,11 +143,12 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
         
         row_sum(deltas_row_sum[0], deltas[0], rows, nodes[0]);
         
-        while (for_helper_w >= 0) {
-          wb[0][0][for_helper_w--] -= correction * grad_w[0][for_helper_w];
+        i = for_helper_w - 1;
+        while (i >= 0) {
+          wb[0][0][i--] -= correction * grad_w[0][i];
         }
         
-        j = nodes[0];
+        j = nodes[0] - 1;
         while (j >= 0) {
           wb[1][0][j--] -= correction * deltas_row_sum[0][j];
         }
@@ -172,15 +175,16 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
               
               row_sum(deltas_row_sum[l], deltas[l], rows, nodes[l]);
               
-              while (for_helper_w >= 0) {
-                wb[0][l][for_helper_w--] -= correction * grad_w[l][for_helper_w];
+              i = for_helper_w - 1;
+              while (i >= 0) {
+                wb[0][l][i--] -= correction * grad_w[l][i];
               }
               
-              j = nodes[l];
+              j = nodes[l] - 1;
               while (j >= 0) {
                 wb[1][l][j--] -= correction * deltas_row_sum[l][j];
               }
-              l--;
+              --l;
             }
             break;
         }
@@ -200,11 +204,12 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
         
         row_sum(deltas_row_sum[layers], deltas[layers], rows, columns_Y);
         
-        while (for_helper_w >= 0) {
-          wb[0][layers][for_helper_w--] -= correction * grad_w[layers][for_helper_w];
+        i = for_helper_w - 1;
+        while (i >= 0) {
+          wb[0][layers][i--] -= correction * grad_w[layers][i];
         }
         
-        j = columns_Y;
+        j = columns_Y - 1;
         while (j >= 0) {
           wb[1][layers][j--] -= correction * deltas_row_sum[layers][j];
         }
@@ -268,16 +273,18 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
           case 1:
             Z_batch[0][l] = malloc(batch * columns_Y * sizeof(double));
             Z_batch[1][l] = malloc(batch * columns_Y * sizeof(double));
-            break;
+            continue;
           default:
             Z_batch[0][l] = malloc(batch * nodes[l] * sizeof(double));
             Z_batch[1][l] = malloc(batch * nodes[l] * sizeof(double));
-            break;
+            continue;
         }
       }
       
       while (e != 0) {
-        printf("%.10lf\n", loss);
+        if (loss != 0.0) {
+          printf("%.10lf\n", loss);
+        }
         
         i = 0;
         for (b = 0; b < rows; b+=batch) {
@@ -289,7 +296,7 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
             }
             switch (layers == 1) {
               case 1:
-                break;
+                continue;
               default:
                 for (l = 1; l < layers; l++) {
                   for (j = 0; j < nodes[l]; j++) {
@@ -297,7 +304,7 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
                     Z_batch[1][l][r * nodes[l] + j] = Z[1][l][(r + b) * nodes[l] + j];
                   }
                 }
-                break;
+                continue;
             }
             for (j = 0; j < columns_Y; j++) {
               Z_batch[0][layers][r * columns_Y + j] = Z[0][layers][(r + b) * columns_Y + j];
@@ -325,11 +332,12 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
           
           row_sum(deltas_row_sum[0], deltas[0], batch, nodes[0]);
           
-          while (for_helper_w >= 0) {
-            wb[0][0][for_helper_w--] -= correction * grad_w[0][for_helper_w];
+          i = for_helper_w - 1;
+          while (i >= 0) {
+            wb[0][0][i--] -= correction * grad_w[0][i];
           }
           
-          j = nodes[0];
+          j = nodes[0] - 1;
           while (j >= 0) {
             wb[1][0][j--] -= correction * deltas_row_sum[0][j];
           }
@@ -355,11 +363,12 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
                 
                 row_sum(deltas_row_sum[l], deltas[l], batch, nodes[l]);
                 
-                while (for_helper_w >= 0) {
-                  wb[0][l][for_helper_w--] -= correction * grad_w[l][for_helper_w];
+                i = for_helper_w - 1;
+                while (i >= 0) {
+                  wb[0][l][i--] -= correction * grad_w[l][i];
                 }
                 
-                j = nodes[l];
+                j = nodes[l] - 1;
                 while (j >= 0) {
                   wb[1][l][j--] -= correction * deltas_row_sum[l][j];
                 }
@@ -383,11 +392,12 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
           
           row_sum(deltas_row_sum[layers], deltas[layers], batch, columns_Y);
           
-          while (for_helper_w >= 0) {
-            wb[0][layers][for_helper_w--] -= correction * grad_w[layers][for_helper_w];
+          i = for_helper_w - 1;
+          while (i >= 0) {
+            wb[0][layers][i--] -= correction * grad_w[layers][i];
           }
           
-          j = columns_Y;
+          j = columns_Y - 1;
           while (j >= 0) {
             wb[1][layers][j--] -= correction * deltas_row_sum[layers][j];
           }
@@ -396,7 +406,9 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
           feedforward_update(Z, rows, columns_Y, columns_X, layers, X, wb, nodes, funcs);
           i++;
         }
+        
         loss = rmse(rows, columns_Y, Y, Z[1][layers]);
+
         if (loss != loss) {
           printf("\nWe got NaN values at epoch = %d, aborting...\n", epochs - e);
           // Free before quitting
@@ -421,14 +433,9 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
           free(grad_w);
           return;
         }
-        --e;
+        e--;
       }
-      
       // End of batching
-      for (i = 0; i < rows/batch; i++) {
-        free(X_batch[i]);
-        free(Y_batch[i]);
-      }
       for (l = 0; l < layers + 1; l++) {
         free(Z_batch[0][l]);
         free(Z_batch[1][l]);
@@ -436,6 +443,10 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
       free(Z_batch[0]);
       free(Z_batch[1]);
       free(Z_batch);
+      for (i = 0; i < r_over_b; i++) {
+        free(X_batch[i]);
+        free(Y_batch[i]);
+      }
       free(Y_batch);
       free(X_batch);
       break;

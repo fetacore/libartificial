@@ -4,6 +4,7 @@
 void activate(double *X_activated, double *X, int threshold, char *function) {
   
   int i = threshold - 1;
+  double e_X = 0, e_mX = 0;
   
   switch (strcmp(function, "relu")) {
     case 0:
@@ -11,40 +12,11 @@ void activate(double *X_activated, double *X, int threshold, char *function) {
         switch (X[i] < 0.0) {
           case 1:
             X_activated[i--] = 0.0;
-            break;
+            continue;
           default:
             X_activated[i--] = X[i];
-            break;
+            continue;
         }
-      }
-      return;
-    default:
-      break;
-  }
-  
-  // Leaky relu
-  switch (strcmp(function, "lrelu")) {
-    case 0:
-      while (i >= 0) {
-        switch (X[i] < 0.0) {
-          case 1:
-            X_activated[i--] = 0.01 * X[i];
-            break;
-          default:
-            X_activated[i--] = X[i];
-            break;
-        }
-      }
-      return;
-    default:
-      break;
-  }
-    
-  double e_X = 0, e_mX = 0;
-  switch (strcmp(function, "tanh")) {
-    case 0:
-      while (i >= 0) {
-        X_activated[i--] = tanh(X[i]);
       }
       return;
     default:
@@ -53,9 +25,8 @@ void activate(double *X_activated, double *X, int threshold, char *function) {
   
   switch (strcmp(function, "logistic")) {
     case 0:
-      while (i >= threshold) {
-        e_mX = exp(-X[i]);
-        X_activated[i--] = 1/(1 + e_mX);
+      while (i >= 0) {
+        X_activated[i--] = 1/(1 + exp(-X[i]));
       }
       return;
     default:
@@ -73,6 +44,16 @@ void activate(double *X_activated, double *X, int threshold, char *function) {
       break;
   }
   
+  switch (strcmp(function, "tanh")) {
+    case 0:
+      while (i >= 0) {
+        X_activated[i--] = tanh(X[i]);
+      }
+      return;
+    default:
+      break;
+  }
+  
   switch (strcmp(function, "softmax")) {
     case 0:
       while (i >= 0) {
@@ -81,6 +62,24 @@ void activate(double *X_activated, double *X, int threshold, char *function) {
       i = threshold - 1;
       while (i >= 0) {
         X_activated[i--] = exp(X[i])/e_X;
+      }
+      return;
+    default:
+      break;
+  }
+  
+  // Leaky relu
+  switch (strcmp(function, "lrelu")) {
+    case 0:
+      while (i >= 0) {
+        switch (X[i] < 0.0) {
+          case 1:
+            X_activated[i--] = 0.01 * X[i];
+            continue;
+          default:
+            X_activated[i--] = X[i];
+            continue;
+        }
       }
       return;
     default:
@@ -135,10 +134,10 @@ void activate(double *X_activated, double *X, int threshold, char *function) {
         switch (X[i] < 0.0) {
           case 1:
             X_activated[i--] = X[i]/sqrt(1 + pow(X[i], 2));
-            break;
+            continue;
           default:
             X_activated[i--] = X[i];
-            break;
+            continue;
         }
       }
       return;
@@ -172,10 +171,10 @@ void activate(double *X_activated, double *X, int threshold, char *function) {
         switch (X[i] == 0.0) {
           case 1:
             X_activated[i--] = 1.0;
-            break;
+            continue;
           default:
             X_activated[i--] = sin(X[i])/X[i];
-            break;
+            continue;
         }
       }
       return;

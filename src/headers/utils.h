@@ -22,7 +22,11 @@ extern int **im2col(int ***images, int no_of_images, int img_width, int img_heig
                     int stride, // (img_width - spatial + 2 * padding)/stride should be int
                     int padding, // Zeros around
                     int delete_originals // 0 if no, 1 if yes (keep only vectorized in memory)
-                  );
+                   );
+
+// Saving and loading wb files
+extern void save_wb(double ***wb, int layers, int nodes[layers], int columns_Y, int columns_X);
+extern double ***load_wb(int layers, int nodes[layers], int columns_Y, int columns_X);
 
 // Freedom
 extern void delete_wb(int layers, double ***wb);

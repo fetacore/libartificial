@@ -4,6 +4,7 @@
 void gradient(double *X_graded, double *X, int threshold, char *function) {
   
   int i = threshold - 1;
+  double e_X = 0, e_mX = 0, y = 0;
   
   switch (strcmp(function, "relu")) {
     case 0:
@@ -11,43 +12,11 @@ void gradient(double *X_graded, double *X, int threshold, char *function) {
         switch (X[i] < 0.0) {
           case 1:
             X_graded[i--] = 0.0;
-            break;
+            continue;
           default:
             X_graded[i--] = 1.0;
-            break;
+            continue;
         }
-      }
-      return;
-    default:
-      break;
-  }
-  
-  // Leaky relu
-  switch (strcmp(function, "lrelu")) {
-    case 0:
-      while (i >= 0) {
-        switch (X[i] < 0.0) {
-          case 1:
-            X_graded[i--] = 0.01;
-            break;
-          default:
-            X_graded[i--] = 1.0;
-            break;
-        }
-      }
-      return;
-    default:
-      break;
-  }
-  
-  double e_X = 0, e_mX = 0, y = 0;
-  switch (strcmp(function, "tanh")) {
-    case 0:
-      while (i >= 0) {
-        e_X = exp(X[i]);
-        e_mX = exp(-X[i]);
-        y = (e_X - e_mX)/(e_X + e_mX);
-        X_graded[i--] = 1 - y * y;
       }
       return;
     default:
@@ -76,6 +45,20 @@ void gradient(double *X_graded, double *X, int threshold, char *function) {
       break;
   }
   
+  switch (strcmp(function, "tanh")) {
+    case 0:
+      while (i >= 0) {
+        e_X = exp(X[i]);
+        e_mX = exp(-X[i]);
+        y = (e_X - e_mX)/(e_X + e_mX);
+        X_graded[i--] = 1 - y * y;
+      }
+      return;
+    default:
+      break;
+  }
+  
+  
   switch (strcmp(function, "softmax")) {
     case 0:
       while (i >= 0) {
@@ -87,6 +70,24 @@ void gradient(double *X_graded, double *X, int threshold, char *function) {
         // Abuse again
         e_mX = exp(X[i])/e_X;
         X_graded[i--] = e_mX * (1 - e_mX);
+      }
+      return;
+    default:
+      break;
+  }
+  
+  // Leaky relu
+  switch (strcmp(function, "lrelu")) {
+    case 0:
+      while (i >= 0) {
+        switch (X[i] < 0.0) {
+          case 1:
+            X_graded[i--] = 0.01;
+            continue;
+          default:
+            X_graded[i--] = 1.0;
+            continue;
+        }
       }
       return;
     default:
@@ -149,10 +150,10 @@ void gradient(double *X_graded, double *X, int threshold, char *function) {
             y = sqrt(1 + X[i] * X[i]);
             y = X[i]/y;
             X_graded[i--] = pow(y, 3);
-            break;
+            continue;
           default:
             X_graded[i--] = 1.0;
-            break;
+            continue;
         }
       }
       return;
@@ -189,10 +190,10 @@ void gradient(double *X_graded, double *X, int threshold, char *function) {
         switch (X[i] == 0.0) {
           case 1:
             X_graded[i--] = 0.0;
-            break;
+            continue;
           default:
             X_graded[i--] = cos(X[i])/X[i] - sin(X[i])/(X[i] * X[i]);
-            break;
+            continue;
         }
       }
       return;
