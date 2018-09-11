@@ -3,9 +3,9 @@
 #include <math.h>
 #include <time.h>
 
-#include "../src/headers/neurons_cpu.h"
-#include "../src/headers/training_cpu.h"
 #include "../src/headers/utils.h"
+#include "../src/headers/training_cpu.h"
+#include "../src/headers/neurons_cpu.h"
 
 int main(void)
 {

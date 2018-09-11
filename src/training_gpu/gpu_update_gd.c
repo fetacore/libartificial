@@ -166,9 +166,12 @@ void update_gd_gpu(const size_t rows, const size_t columns_Y, const size_t colum
         device_a = clCreateBuffer(context, CL_MEM_READ_WRITE, rows * columns_X * sizeof(double), NULL, NULL);
         device_b = clCreateBuffer(context, CL_MEM_READ_WRITE, rows * nodes[0] * sizeof(double), NULL, NULL);
         device_c = clCreateBuffer(context, CL_MEM_READ_WRITE, columns_X * nodes[0] * sizeof(double), NULL, NULL);
-        clEnqueueWriteBuffer(queue, device_a, CL_TRUE, 0, rows * columns_X * sizeof(double), X, 0, NULL, NULL);
-        clEnqueueWriteBuffer(queue, device_b, CL_TRUE, 0, rows * nodes[0] * sizeof(double), deltas[0], 0, NULL, NULL);
-        clEnqueueWriteBuffer(queue, device_c, CL_TRUE, 0, columns_X * nodes[0] * sizeof(double), grad_w[0],0,NULL,NULL);
+        clEnqueueWriteBuffer(queue, device_a, CL_TRUE, 0, rows * columns_X * sizeof(double),
+                             X, 0, NULL, NULL);
+        clEnqueueWriteBuffer(queue, device_b, CL_TRUE, 0, rows * nodes[0] * sizeof(double),
+                             deltas[0], 0, NULL, NULL);
+        clEnqueueWriteBuffer(queue, device_c, CL_TRUE, 0, columns_X * nodes[0] * sizeof(double),
+                             grad_w[0], 0, NULL, NULL);
         
         // Input layer
         CLBlastStatusCode status = CLBlastDgemm(CLBlastLayoutRowMajor, CLBlastTransposeYes, CLBlastTransposeNo,
@@ -183,7 +186,8 @@ void update_gd_gpu(const size_t rows, const size_t columns_Y, const size_t colum
         // Wait for completion
         if (status == CLBlastSuccess) {
           clWaitForEvents(1, &event);
-          clEnqueueReadBuffer(queue, device_c, CL_TRUE, 0, columns_X * nodes[0] * sizeof(double),grad_w[0],0,NULL,NULL);
+          clEnqueueReadBuffer(queue, device_c, CL_TRUE, 0, columns_X * nodes[0] * sizeof(double),
+                              grad_w[0], 0, NULL, NULL);
           clReleaseEvent(event);
         }
         
@@ -217,9 +221,12 @@ void update_gd_gpu(const size_t rows, const size_t columns_Y, const size_t colum
               device_a = clCreateBuffer(context, CL_MEM_READ_WRITE, rows * nodes[l-1] * sizeof(double), NULL, NULL);
               device_b = clCreateBuffer(context, CL_MEM_READ_WRITE, rows * nodes[l] * sizeof(double), NULL, NULL);
               device_c = clCreateBuffer(context, CL_MEM_READ_WRITE, nodes[l-1] * nodes[l] * sizeof(double), NULL, NULL);
-              clEnqueueWriteBuffer(queue, device_a, CL_TRUE, 0, rows * nodes[l-1] * sizeof(double), Z[1][l-1], 0, NULL, NULL);
-              clEnqueueWriteBuffer(queue, device_b, CL_TRUE, 0, rows * nodes[l] * sizeof(double), deltas[l], 0, NULL, NULL);
-              clEnqueueWriteBuffer(queue, device_c, CL_TRUE, 0, nodes[l-1] * nodes[l] * sizeof(double), grad_w[l], 0, NULL, NULL);
+              clEnqueueWriteBuffer(queue, device_a, CL_TRUE, 0, rows * nodes[l-1] * sizeof(double),
+                                   Z[1][l-1], 0, NULL, NULL);
+              clEnqueueWriteBuffer(queue, device_b, CL_TRUE, 0, rows * nodes[l] * sizeof(double),
+                                   deltas[l], 0, NULL, NULL);
+              clEnqueueWriteBuffer(queue, device_c, CL_TRUE, 0, nodes[l-1] * nodes[l] * sizeof(double),
+                                   grad_w[l], 0, NULL, NULL);
               
               status = CLBlastDgemm(CLBlastLayoutRowMajor, CLBlastTransposeYes, CLBlastTransposeNo,
                                     nodes[l-1], nodes[l], rows,
@@ -233,7 +240,8 @@ void update_gd_gpu(const size_t rows, const size_t columns_Y, const size_t colum
               // Wait for completion
               if (status == CLBlastSuccess) {
                 clWaitForEvents(1, &event);
-                clEnqueueReadBuffer(queue, device_c, CL_TRUE, 0, nodes[l-1] * nodes[l] * sizeof(double),grad_w[l],0,NULL,NULL);
+                clEnqueueReadBuffer(queue, device_c, CL_TRUE, 0, nodes[l-1] * nodes[l] * sizeof(double),
+                                    grad_w[l], 0, NULL, NULL);
                 clReleaseEvent(event);
               }
               
@@ -262,9 +270,12 @@ void update_gd_gpu(const size_t rows, const size_t columns_Y, const size_t colum
         device_a = clCreateBuffer(context, CL_MEM_READ_WRITE, rows * nodes[layers-1] * sizeof(double), NULL, NULL);
         device_b = clCreateBuffer(context, CL_MEM_READ_WRITE, rows * columns_Y * sizeof(double), NULL, NULL);
         device_c = clCreateBuffer(context, CL_MEM_READ_WRITE, nodes[layers-1] * columns_Y * sizeof(double), NULL, NULL);
-        clEnqueueWriteBuffer(queue, device_a, CL_TRUE, 0, rows * nodes[layers-1] * sizeof(double), Z[1][layers-1], 0, NULL, NULL);
-        clEnqueueWriteBuffer(queue, device_b, CL_TRUE, 0, rows * columns_Y * sizeof(double), deltas[layers], 0, NULL, NULL);
-        clEnqueueWriteBuffer(queue, device_c, CL_TRUE, 0, nodes[layers-1] * columns_Y * sizeof(double), grad_w[layers], 0, NULL, NULL);
+        clEnqueueWriteBuffer(queue, device_a, CL_TRUE, 0, rows * nodes[layers-1] * sizeof(double),
+                             Z[1][layers-1], 0, NULL, NULL);
+        clEnqueueWriteBuffer(queue, device_b, CL_TRUE, 0, rows * columns_Y * sizeof(double),
+                             deltas[layers], 0, NULL, NULL);
+        clEnqueueWriteBuffer(queue, device_c, CL_TRUE, 0, nodes[layers-1] * columns_Y * sizeof(double),
+                             grad_w[layers], 0, NULL, NULL);
         
         status = CLBlastDgemm(CLBlastLayoutRowMajor, CLBlastTransposeYes, CLBlastTransposeNo,
                               nodes[layers-1], columns_Y, rows,
@@ -278,7 +289,8 @@ void update_gd_gpu(const size_t rows, const size_t columns_Y, const size_t colum
         // Wait for completion
         if (status == CLBlastSuccess) {
           clWaitForEvents(1, &event);
-          clEnqueueReadBuffer(queue, device_c, CL_TRUE, 0, nodes[layers-1] * columns_Y * sizeof(double),grad_w[layers],0,NULL,NULL);
+          clEnqueueReadBuffer(queue, device_c, CL_TRUE, 0, nodes[layers-1] * columns_Y * sizeof(double),
+                              grad_w[layers], 0, NULL, NULL);
           clReleaseEvent(event);
         }
         
@@ -409,9 +421,12 @@ void update_gd_gpu(const size_t rows, const size_t columns_Y, const size_t colum
           device_a = clCreateBuffer(context, CL_MEM_READ_WRITE, batch * columns_X * sizeof(double), NULL, NULL);
           device_b = clCreateBuffer(context, CL_MEM_READ_WRITE, batch * nodes[0] * sizeof(double), NULL, NULL);
           device_c = clCreateBuffer(context, CL_MEM_READ_WRITE, columns_X * nodes[0] * sizeof(double), NULL, NULL);
-          clEnqueueWriteBuffer(queue, device_a, CL_TRUE, 0, batch * columns_X * sizeof(double), X_batch[i], 0, NULL, NULL);
-          clEnqueueWriteBuffer(queue, device_b, CL_TRUE, 0, batch * nodes[0] * sizeof(double), deltas[0], 0, NULL, NULL);
-          clEnqueueWriteBuffer(queue, device_c, CL_TRUE, 0, columns_X * nodes[0] * sizeof(double), grad_w[0], 0, NULL, NULL);
+          clEnqueueWriteBuffer(queue, device_a, CL_TRUE, 0, batch * columns_X * sizeof(double),
+                               X_batch[i], 0, NULL, NULL);
+          clEnqueueWriteBuffer(queue, device_b, CL_TRUE, 0, batch * nodes[0] * sizeof(double),
+                               deltas[0], 0, NULL, NULL);
+          clEnqueueWriteBuffer(queue, device_c, CL_TRUE, 0, columns_X * nodes[0] * sizeof(double),
+                               grad_w[0], 0, NULL, NULL);
           
           // Input layer
           CLBlastStatusCode status = CLBlastDgemm(CLBlastLayoutRowMajor, CLBlastTransposeYes, CLBlastTransposeNo,
@@ -426,7 +441,8 @@ void update_gd_gpu(const size_t rows, const size_t columns_Y, const size_t colum
           // Wait for completion
           if (status == CLBlastSuccess) {
             clWaitForEvents(1, &event);
-            clEnqueueReadBuffer(queue, device_c, CL_TRUE, 0, columns_X * nodes[0] * sizeof(double),grad_w[0],0,NULL,NULL);
+            clEnqueueReadBuffer(queue, device_c, CL_TRUE, 0, columns_X * nodes[0] * sizeof(double),
+                                grad_w[0], 0, NULL, NULL);
             clReleaseEvent(event);
           }
           
@@ -460,9 +476,12 @@ void update_gd_gpu(const size_t rows, const size_t columns_Y, const size_t colum
                 device_a = clCreateBuffer(context, CL_MEM_READ_WRITE, batch * nodes[l-1] * sizeof(double), NULL, NULL);
                 device_b = clCreateBuffer(context, CL_MEM_READ_WRITE, batch * nodes[l] * sizeof(double), NULL, NULL);
                 device_c = clCreateBuffer(context, CL_MEM_READ_WRITE, nodes[l-1] * nodes[l] * sizeof(double), NULL, NULL);
-                clEnqueueWriteBuffer(queue, device_a, CL_TRUE, 0, batch * nodes[l-1] * sizeof(double), Z_batch[1][l-1], 0, NULL, NULL);
-                clEnqueueWriteBuffer(queue, device_b, CL_TRUE, 0, batch * nodes[l] * sizeof(double), deltas[l], 0, NULL, NULL);
-                clEnqueueWriteBuffer(queue, device_c, CL_TRUE, 0, nodes[l-1] * nodes[l] * sizeof(double), grad_w[l], 0, NULL, NULL);
+                clEnqueueWriteBuffer(queue, device_a, CL_TRUE, 0, batch * nodes[l-1] * sizeof(double),
+                                     Z_batch[1][l-1], 0, NULL, NULL);
+                clEnqueueWriteBuffer(queue, device_b, CL_TRUE, 0, batch * nodes[l] * sizeof(double),
+                                     deltas[l], 0, NULL, NULL);
+                clEnqueueWriteBuffer(queue, device_c, CL_TRUE, 0, nodes[l-1] * nodes[l] * sizeof(double),
+                                     grad_w[l], 0, NULL, NULL);
                 
                 status = CLBlastDgemm(CLBlastLayoutRowMajor, CLBlastTransposeYes, CLBlastTransposeNo,
                                       nodes[l-1], nodes[l], batch,
@@ -476,7 +495,8 @@ void update_gd_gpu(const size_t rows, const size_t columns_Y, const size_t colum
                 // Wait for completion
                 if (status == CLBlastSuccess) {
                   clWaitForEvents(1, &event);
-                  clEnqueueReadBuffer(queue, device_c, CL_TRUE, 0, nodes[l-1] * nodes[l] * sizeof(double),grad_w[l],0,NULL,NULL);
+                  clEnqueueReadBuffer(queue, device_c, CL_TRUE, 0, nodes[l-1] * nodes[l] * sizeof(double),
+                                      grad_w[l], 0, NULL, NULL);
                   clReleaseEvent(event);
                 }
                 
@@ -505,9 +525,12 @@ void update_gd_gpu(const size_t rows, const size_t columns_Y, const size_t colum
           device_a = clCreateBuffer(context, CL_MEM_READ_WRITE, batch * nodes[layers-1] * sizeof(double), NULL, NULL);
           device_b = clCreateBuffer(context, CL_MEM_READ_WRITE, batch * columns_Y * sizeof(double), NULL, NULL);
           device_c = clCreateBuffer(context, CL_MEM_READ_WRITE, nodes[layers-1] * columns_Y * sizeof(double), NULL, NULL);
-          clEnqueueWriteBuffer(queue, device_a, CL_TRUE, 0, batch * nodes[layers-1] * sizeof(double), Z_batch[1][layers-1], 0, NULL, NULL);
-          clEnqueueWriteBuffer(queue, device_b, CL_TRUE, 0, batch * columns_Y * sizeof(double), deltas[layers], 0, NULL, NULL);
-          clEnqueueWriteBuffer(queue, device_c, CL_TRUE, 0, nodes[layers-1] * columns_Y * sizeof(double), grad_w[layers], 0, NULL, NULL);
+          clEnqueueWriteBuffer(queue, device_a, CL_TRUE, 0, batch * nodes[layers-1] * sizeof(double),
+                               Z_batch[1][layers-1], 0, NULL, NULL);
+          clEnqueueWriteBuffer(queue, device_b, CL_TRUE, 0, batch * columns_Y * sizeof(double),
+                               deltas[layers], 0, NULL, NULL);
+          clEnqueueWriteBuffer(queue, device_c, CL_TRUE, 0, nodes[layers-1] * columns_Y * sizeof(double),
+                               grad_w[layers], 0, NULL, NULL);
           
           status = CLBlastDgemm(CLBlastLayoutRowMajor, CLBlastTransposeYes, CLBlastTransposeNo,
                                 nodes[layers-1], columns_Y, batch,
@@ -521,7 +544,8 @@ void update_gd_gpu(const size_t rows, const size_t columns_Y, const size_t colum
           // Wait for completion
           if (status == CLBlastSuccess) {
             clWaitForEvents(1, &event);
-            clEnqueueReadBuffer(queue, device_c, CL_TRUE, 0, nodes[layers-1] * columns_Y * sizeof(double),grad_w[layers],0,NULL,NULL);
+            clEnqueueReadBuffer(queue, device_c, CL_TRUE, 0, nodes[layers-1] * columns_Y * sizeof(double),
+                                grad_w[layers], 0, NULL, NULL);
             clReleaseEvent(event);
           }
           

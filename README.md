@@ -36,6 +36,8 @@ cd ../../
 
 ```
 
+You should also take note that the library uses doubles and not all GPUs support double arithmetic in OpenCL.
+
 ### Compilation
 
 In order to compile the library do the following (assuming you continue from where we left off)

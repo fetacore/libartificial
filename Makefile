@@ -1,49 +1,50 @@
 CC = gcc
 DLLEXT = .so
-SKIP_GPU := $(wildcard src/*/gpu_*.c)
-SKIP_CPU := $(wildcard src/*/cpu_*.c)
-
 RM = rm -f
 
+SRCS_CPU = $(filter-out $(wildcard src/*/gpu_*.c), $(wildcard src/*/*.c))
+SRCS_GPU = $(filter-out $(wildcard src/*/cpu_*.c), $(wildcard src/*/*.c))
+SRCS = $(wildcard src/*/*.c)
 
-SRCS := $(filter-out $(SKIP_GPU), $(wildcard src/*/*.c))
-CFLAGS = -fPIC -Wall -Wextra -march=native -O3 -pedantic-errors
-LDFLAGS = -shared
-LIBS = -lm -lopenblas -lpthread
-TARGET_LIB = libartificial$(DLLEXT)
-OBJS = $(SRCS:.c=.o)
+OBJS_CPU = $(SRCS_CPU:.c=.o)
+OBJS_GPU = $(SRCS_GPU:.c=.o)
+OBJS = $(OBJS_CPU) $(OBJS_GPU)
 
+TARGET_LIB_CPU = libartificial$(DLLEXT)
+TARGET_LIB_GPU = libartificialgpu$(DLLEXT)
+TARGET_LIBS = $(TARGET_LIB_CPU) $(TARGET_LIB_GPU)
 
-GPU_SRCS := $(filter-out $(SKIP_CPU), $(wildcard src/*/*.c))
-GPU_CFLAGS = -L./clblast/build -Wl,-rpath=./clblast/build -fPIC -Wall -Wextra -march=native -O3 -pedantic-errors
-GPU_LDFLAGS = -L./clblast/build -Wl,-rpath=./clblast/build -shared
-GPU_LIBS = -lm -lclblast
-GPU_TARGET_LIB = libartificialgpu$(DLLEXT)
-GPU_OBJS = $(GPU_SRCS:.c=.o)
+CFLAGS_CPU = -fPIC -Wall -Wextra -march=native -O3 -pedantic-errors
+CFLAGS_GPU = -L./clblast/build -Wl,-rpath=./clblast/build -fPIC -Wall -Wextra -march=native -O3 -pedantic-errors
+
+LDFLAGS_CPU = -shared
+LDFLAGS_GPU = -L./clblast/build -Wl,-rpath=./clblast/build -shared
+
+LIBS_CPU = -lm -lopenblas -lpthread
+LIBS_GPU = -lm -lclblast
 
 VALGRINDOPTS = valgrind --leak-check=yes --track-origins=yes
 
+.PHONY: all
+all: $(TARGET_LIBS)
+
+$(TARGET_LIB_CPU): $(OBJS_CPU)
+	$(CC) $(LDFLAGS_CPU) $(CFLAGS_CPU) -o $@ $^ $(LIBS_CPU) && make clean
+
+$(TARGET_LIB_GPU): $(OBJS_GPU)
+	$(CC) $(LDFLAGS_GPU) $(CFLAGS_GPU) -o $@ $^ $(LIBS_GPU) && make clean
+
 .PHONY: cpu
-cpu: ${TARGET_LIB}
+cpu: ${TARGET_LIB_CPU}
 
-$(TARGET_LIB): $(OBJS)
-	$(CC) ${LDFLAGS} -o $@ $^ $(LIBS) && make clean
-
-$(SRCS:.c=.d):%.d:%.c
-	$(CC) $(CFLAGS) -MM $< >$@
-
-include $(SRCS:.c=.d)
+$(TARGET_LIB_CPU): $(OBJS_CPU)
+	$(CC) ${LDFLAGS_CPU} $(CFLAGS_CPU) -o $@ $^ $(LIBS_CPU) && make clean
 
 .PHONY: gpu
-gpu: ${GPU_TARGET_LIB}
+gpu: ${TARGET_LIB_GPU}
 
-$(GPU_TARGET_LIB): $(GPU_OBJS)
-	$(CC) ${GPU_LDFLAGS} -o $@ $^ $(GPU_LIBS) && make clean
-
-$(GPU_SRCS:.c=.d):%.d:%.c
-	$(CC) $(GPU_CFLAGS) -MM $< >$@
-
-include $(GPU_SRCS:.c=.d)
+$(TARGET_LIB_GPU): $(OBJS_GPU)
+	$(CC) ${LDFLAGS_GPU} $(CFLAGS_GPU) -o $@ $^ $(LIBS_GPU) && make clean
 
 .PHONY: test1
 test1:

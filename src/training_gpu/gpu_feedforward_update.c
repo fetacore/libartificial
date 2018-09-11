@@ -63,8 +63,8 @@ void feedforward_update_gpu(double ***Z, const size_t rows, const size_t columns
     case 0:
       break;
     default:
-      l = layers - 1;
-      while (l >= 1) {
+      l = 1;
+      do {
         for_helper = rows * nodes[l];
         i = for_helper - 1;
         j = nodes[l] - 1;
@@ -99,8 +99,8 @@ void feedforward_update_gpu(double ***Z, const size_t rows, const size_t columns
         } while (i >= 0);
         
         activate(Z[1][l], Z[0][l], for_helper, funcs[l]);
-        l--;
-      }
+        l++;
+      } while (l != layers);
       break;
   }
   
