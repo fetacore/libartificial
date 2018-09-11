@@ -3,8 +3,7 @@
 #include <cblas.h>
 
 #include "../headers/utils.h"
-#include "../headers/training.h"
-#include "../headers/neurons.h"
+#include "../headers/training_cpu.h"
 
 // GRADIENT DESCENT with batch size
 // Directly manipulates weights and prediction
@@ -13,9 +12,10 @@
 // For mini-batch set batch = whatever you want (perfect divisor of rows)
 // For pure batch gd set batch = rows
 
-void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, int nodes[layers],
-               double *Y, double *X, double ***Z, double ***wb,
-               char funcs[layers + 1][30], double learning_rate, int epochs)
+void update_gd(const size_t rows, const size_t columns_Y, const size_t columns_X,
+               const int batch, const int layers, const int nodes[layers],
+               const double *Y, const double *X, double ***Z, double ***wb,
+               char funcs[layers + 1][30], const double learning_rate, const int epochs)
 {
   // l for layers
   // i for rows
@@ -26,8 +26,8 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
   // In case of mini-batching or stochastic
   // b for batch
   // r helper for batch rows
-  int b, r, r_over_b = rows/batch, for_helper_w = columns_X * nodes[0];
-  
+  int b, r, r_over_b = (int)rows/batch, for_helper_w = columns_X * nodes[0], for_helper_batch = batch * nodes[0];
+    
   double loss = 0.0;
   
   // For the averaging of deltas in batch/mini-batch
@@ -44,10 +44,10 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
   // Allocations
   
   // delta dim (batch * nodes[0])
-  deltas[0] = malloc(batch * nodes[0] * sizeof(double));
+  deltas[0] = malloc(for_helper_batch * sizeof(double));
   deltas_row_sum[0] = malloc(nodes[0] * sizeof(double));
   
-  for (i = 0; i < batch * nodes[0]; i++) {
+  for (i = 0; i < for_helper_batch; i++) {
     deltas[0][i] = 0.0;
     switch (i < nodes[0]) {
       case 1:
@@ -67,11 +67,13 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
     // More than one hidden layers
     case 1:
       for (l = 1; l < layers; l++) {
+        for_helper_w = nodes[l-1] * nodes[l];
         // delta dim (batch * nodes[l])
-        deltas[l] = malloc(batch * nodes[l] * sizeof(double));
+        for_helper_batch = batch * nodes[l];
+        deltas[l] = malloc(for_helper_batch * sizeof(double));
         deltas_row_sum[l] = malloc(nodes[l] * sizeof(double));
         
-        for (i = 0; i < batch * nodes[l]; i++) {
+        for (i = 0; i < for_helper_batch; i++) {
           deltas[l][i] = 0.0;
           switch (i < nodes[l]) {
             case 1:
@@ -82,8 +84,8 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
           }
         }
         
-        grad_w[l] = malloc(nodes[l-1] * nodes[l] * sizeof(double));
-        for (i = 0; i < nodes[l-1] * nodes[l]; i++) {
+        grad_w[l] = malloc(for_helper_w * sizeof(double));
+        for (i = 0; i < for_helper_w; i++) {
           grad_w[l][i] = 0.0;
         }
         
@@ -93,13 +95,15 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
       break;
   }
   
+  for_helper_w = nodes[layers-1] * (int)columns_Y;
   // delta_out dim(batch * columns_Y)
-  deltas[layers] = malloc(batch * columns_Y * sizeof(double));
+  for_helper_batch = batch * (int)columns_Y;
+  deltas[layers] = malloc(for_helper_batch * sizeof(double));
   deltas_row_sum[layers] = malloc(columns_Y * sizeof(double));
   
-  for (i = 0; i < batch * columns_Y; i++) {
+  for (i = 0; i < for_helper_batch; i++) {
     deltas[layers][i] = 0.0;
-    switch (i < columns_Y) {
+    switch (i < (int)columns_Y) {
       case 1:
         deltas_row_sum[layers][i] = 0.0;
         continue;
@@ -109,13 +113,13 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
   }
   
   // grad_w allocation (same dimensions as wb[0][l])
-  grad_w[layers] = malloc(nodes[layers-1] * columns_Y * sizeof(double));
-  for (i = 0; i < nodes[layers-1] * columns_Y; i++) {
+  grad_w[layers] = malloc(for_helper_w * sizeof(double));
+  for (i = 0; i < for_helper_w; i++) {
     grad_w[layers][i] = 0.0;
   }
   
   // Big switch in case we have pure batch (do not allocate mini-batches)
-  switch (batch == rows) {
+  switch (batch == (int)rows) {
     // True
     case 1:
       correction = learning_rate * 1.0/(double)rows;
@@ -138,20 +142,23 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
                     1.0, // scaling factor
                     X, columns_X, // C = A * B -> matrix A, ldA
                     deltas[0], nodes[0], // C = A * B -> matrix B, ldB
-                    1.0, // scaling factor for C (none)
+                    0.0, // scaling factor for C (none)
                     grad_w[0], nodes[0]); // C, ldC
         
         row_sum(deltas_row_sum[0], deltas[0], rows, nodes[0]);
         
+        for_helper_w = columns_X * nodes[0];
         i = for_helper_w - 1;
-        while (i >= 0) {
-          wb[0][0][i--] -= correction * grad_w[0][i];
-        }
+        do {
+          wb[0][0][i] -= correction * grad_w[0][i];
+          i--;
+        } while (i >= 0);
         
         j = nodes[0] - 1;
-        while (j >= 0) {
-          wb[1][0][j--] -= correction * deltas_row_sum[0][j];
-        }
+        do {
+          wb[1][0][j] -= correction * deltas_row_sum[0][j];
+          j--;
+        } while (j >= 0);
         
         // Intermediate layers (if more than one hidden)
         switch (layers == 1) {
@@ -170,21 +177,23 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
                           1.0, // scaling factor (none)
                           Z[1][l-1], nodes[l-1], // C = A * B -> matrix A, ldA
                           deltas[l], nodes[l], // C = A * B -> matrix B, ldB
-                          1.0, // scaling factor for C
+                          0.0, // scaling factor for C
                           grad_w[l], nodes[l]); // C, ldC
               
               row_sum(deltas_row_sum[l], deltas[l], rows, nodes[l]);
               
               i = for_helper_w - 1;
-              while (i >= 0) {
-                wb[0][l][i--] -= correction * grad_w[l][i];
-              }
+              do {
+                wb[0][l][i] -= correction * grad_w[l][i];
+                i--;
+              } while (i >= 0);
               
               j = nodes[l] - 1;
-              while (j >= 0) {
-                wb[1][l][j--] -= correction * deltas_row_sum[l][j];
-              }
-              --l;
+              do {
+                wb[1][l][j] -= correction * deltas_row_sum[l][j];
+                j--;
+              } while (j >= 0);
+              l--;
             }
             break;
         }
@@ -199,20 +208,22 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
                     1.0, // scaling factor
                     Z[1][layers-1], nodes[layers-1], // C = A * B -> matrix A, ldA
                     deltas[layers], columns_Y, // C = A * B -> matrix B, ldB
-                    1.0, // scaling factor for C (none)
+                    0.0, // scaling factor for C (none)
                     grad_w[layers], columns_Y); // C, ldC
         
         row_sum(deltas_row_sum[layers], deltas[layers], rows, columns_Y);
         
         i = for_helper_w - 1;
-        while (i >= 0) {
-          wb[0][layers][i--] -= correction * grad_w[layers][i];
-        }
+        do {
+          wb[0][layers][i] -= correction * grad_w[layers][i];
+          i--;
+        } while (i >= 0);
         
         j = columns_Y - 1;
-        while (j >= 0) {
-          wb[1][layers][j--] -= correction * deltas_row_sum[layers][j];
-        }
+        do {
+          wb[1][layers][j] -= correction * deltas_row_sum[layers][j];
+          j--;
+        } while (j >= 0);
         
         // Update Zs with the new wb's
         feedforward_update(Z, rows, columns_Y, columns_X, layers, X, wb, nodes, funcs);
@@ -241,19 +252,19 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
       double **Y_batch = malloc(r_over_b * sizeof(double *));
       
       for (i = 0; i < r_over_b; i++) {
-        X_batch[i] = malloc(batch * columns_X * sizeof(double));
-        Y_batch[i] = malloc(batch * columns_Y * sizeof(double));
+        X_batch[i] = malloc(batch * (int)columns_X * sizeof(double));
+        Y_batch[i] = malloc(batch * (int)columns_Y * sizeof(double));
       }
       
       i = 0;
-      for (b = 0; b < rows; b+=batch) {
+      for (b = 0; b < (int)rows; b+=batch) {
         for (r = 0; r < batch; r++) {
-          for (j = 0; j < columns_X; j++) {
-            X_batch[i][r * columns_X + j] = X[(r + b) * columns_X + j];
+          for (j = 0; j < (int)columns_X; j++) {
+            X_batch[i][r * (int)columns_X + j] = X[(r + b) * (int)columns_X + j];
           }
         }
         for (r = 0; r < batch; r++) {
-          for (j = 0; j < columns_Y; j++) {
+          for (j = 0; j < (int)columns_Y; j++) {
             Y_batch[i][r * columns_Y + j] = Y[(r + b) * columns_Y + j];
           }
         }
@@ -271,8 +282,8 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
         switch (l == layers) {
           // Last layer
           case 1:
-            Z_batch[0][l] = malloc(batch * columns_Y * sizeof(double));
-            Z_batch[1][l] = malloc(batch * columns_Y * sizeof(double));
+            Z_batch[0][l] = malloc(batch * (int)columns_Y * sizeof(double));
+            Z_batch[1][l] = malloc(batch * (int)columns_Y * sizeof(double));
             continue;
           default:
             Z_batch[0][l] = malloc(batch * nodes[l] * sizeof(double));
@@ -287,7 +298,7 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
         }
         
         i = 0;
-        for (b = 0; b < rows; b+=batch) {
+        for (b = 0; b < (int)rows; b+=batch) {
           // Fill X_batch, Y_batch, Z_batch
           for (r = 0; r < batch; r++) {
             for (j = 0; j < nodes[0]; j++) {
@@ -306,7 +317,7 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
                 }
                 continue;
             }
-            for (j = 0; j < columns_Y; j++) {
+            for (j = 0; j < (int)columns_Y; j++) {
               Z_batch[0][layers][r * columns_Y + j] = Z[0][layers][(r + b) * columns_Y + j];
               Z_batch[1][layers][r * columns_Y + j] = Z[1][layers][(r + b) * columns_Y + j];
             }
@@ -318,7 +329,7 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
           // Now we update the weights and biases
           
           // Input layer
-          for_helper_w = columns_X * nodes[0];
+          for_helper_w = (int)columns_X * nodes[0];
           
           cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
                       columns_X, // Rows of grad_w[l]
@@ -327,20 +338,22 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
                       1.0, // scaling factor
                       X_batch[i], columns_X, // C = A * B -> matrix A, ldA
                       deltas[0], nodes[0], // C = A * B -> matrix B, ldB
-                      1.0, // scaling factor for C (none)
+                      0.0, // scaling factor for C (none)
                       grad_w[0], nodes[0]); // C, ldC
           
           row_sum(deltas_row_sum[0], deltas[0], batch, nodes[0]);
           
           i = for_helper_w - 1;
-          while (i >= 0) {
-            wb[0][0][i--] -= correction * grad_w[0][i];
-          }
+          do {
+            wb[0][0][i] -= correction * grad_w[0][i];
+            i--;
+          } while (i >= 0);
           
           j = nodes[0] - 1;
-          while (j >= 0) {
-            wb[1][0][j--] -= correction * deltas_row_sum[0][j];
-          }
+          do {
+            wb[1][0][j] -= correction * deltas_row_sum[0][j];
+            j--;
+          } while (j >= 0);
           
           // Intermediate layers (if they exist i.e. more than one hidden layer)
           switch (layers > 1) {
@@ -358,27 +371,29 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
                             1.0, // scaling factor (none)
                             Z_batch[1][l-1], nodes[l-1], // matrix A, ldA
                             deltas[l], nodes[l], // C = A * B -> matrix B, ldB
-                            1.0, // scaling factor for C
+                            0.0, // scaling factor for C
                             grad_w[l], nodes[l]); // C, ldC
                 
                 row_sum(deltas_row_sum[l], deltas[l], batch, nodes[l]);
                 
                 i = for_helper_w - 1;
-                while (i >= 0) {
-                  wb[0][l][i--] -= correction * grad_w[l][i];
-                }
+                do {
+                  wb[0][l][i] -= correction * grad_w[l][i];
+                  i--;
+                } while (i >= 0);
                 
                 j = nodes[l] - 1;
-                while (j >= 0) {
-                  wb[1][l][j--] -= correction * deltas_row_sum[l][j];
-                }
+                do {
+                  wb[1][l][j] -= correction * deltas_row_sum[l][j];
+                  j--;
+                } while (j >= 0);
                 l--;
               }
               break;
           }
           
           // Output layer
-          for_helper_w = nodes[layers-1] * columns_Y;
+          for_helper_w = nodes[layers-1] * (int)columns_Y;
           
           cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
                       nodes[layers-1], // Rows of grad_w[l]
@@ -387,20 +402,22 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
                       1.0, // scaling factor
                       Z_batch[1][layers-1], nodes[layers-1],
                       deltas[layers], columns_Y, // C = A * B -> matrix B, ldB
-                      1.0, // scaling factor for C (none)
+                      0.0, // scaling factor for C (none)
                       grad_w[layers], columns_Y); // C, ldC
           
           row_sum(deltas_row_sum[layers], deltas[layers], batch, columns_Y);
           
           i = for_helper_w - 1;
-          while (i >= 0) {
-            wb[0][layers][i--] -= correction * grad_w[layers][i];
-          }
+          do {
+            wb[0][layers][i] -= correction * grad_w[layers][i];
+            i--;
+          } while (i >= 0);
           
           j = columns_Y - 1;
-          while (j >= 0) {
-            wb[1][layers][j--] -= correction * deltas_row_sum[layers][j];
-          }
+          do {
+            wb[1][layers][j] -= correction * deltas_row_sum[layers][j];
+            j--;
+          } while (j >= 0);
           
           // Do an update of Z's with the new wb's
           feedforward_update(Z, rows, columns_Y, columns_X, layers, X, wb, nodes, funcs);
@@ -412,7 +429,7 @@ void update_gd(int rows, int columns_Y, int columns_X, int batch, int layers, in
         if (loss != loss) {
           printf("\nWe got NaN values at epoch = %d, aborting...\n", epochs - e);
           // Free before quitting
-          for (i = 0; i < rows/batch; i++) {
+          for (i = 0; i < (int)rows/batch; i++) {
             free(X_batch[i]);
             free(Y_batch[i]);
           }

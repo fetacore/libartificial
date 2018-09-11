@@ -2,4 +2,5 @@ examples/test1
 examples/test2
 examples/test3
 examples/wb
+clblast
 libartificial.so

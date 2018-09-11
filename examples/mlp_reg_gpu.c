@@ -3,13 +3,13 @@
 #include <math.h>
 #include <time.h>
 
-#include "../src/headers/neurons_cpu.h"
-#include "../src/headers/training_cpu.h"
 #include "../src/headers/utils.h"
+#include "../src/headers/training_gpu.h"
+#include "../src/headers/neurons_gpu.h"
 
 int main(void)
 {
-  int i;
+  int i, j;
   
   // The model
   ///////////////////////////////////////////////////////////////////////////
@@ -33,13 +33,12 @@ int main(void)
   
   // Hyperparameters
   ///////////////////////////////////////////////////////////////////////////
-  const int batch = 128; // Divisor of 1024
+  const int batch = 256; // Divisor of 1024
   const double w_variance = 0.01; // For the weight initialization
-  const double learning_rate = 0.0000001;
+  const double learning_rate = 0.0000000001;
   const int epochs = 14;
   
   const int layers = 7;
-  
   const int nodes[7] = {3200, 230, 397, 540, 408, 390, 480};
   char funcs[7 + 1][30] = {
     "logistic",
@@ -93,19 +92,26 @@ int main(void)
   // wb[1][l][j] biases at layer l=0,...,layers always 1 row and j'th column
   double ***wb = init_wb(w_variance, layers, nodes, funcs, columns_Y, columns_X);
   
-  // If you have already saved weights and biases
-//   double ***wb = load_wb(layers, nodes, columns_Y, columns_X);
+  //   double ***wb = load_wb(layers, nodes, columns_Y, columns_X);
     
   // The outputs from neurons
   // We care about Z[1][layers][i * columns + j] which is the final prediction
   // The rest are used for the updating
-  double ***Z = feedforward(rows, columns_Y, columns_X, layers, X, wb, nodes, funcs);
+  double ***Z = feedforward_gpu(rows, columns_Y, columns_X, layers, X, wb, nodes, funcs);
+  
+  printf("\n");
+  for (i = 0; i < rows-1000; i++) {
+    for (j = 0; j < columns_Y; j++) {
+      printf("%f\t", Z[1][layers][i * columns_Y + j]);
+    }
+    printf("\n");
+  }
   
   // All the updating in one function (manipulates wb)
-  update_gd(rows, columns_Y, columns_X, batch, layers, nodes, Y, X, Z, wb, funcs, learning_rate, epochs);
-    
-  save_wb(wb, layers, nodes, columns_Y, columns_X);
-
+//   update_gd_gpu(rows, columns_Y, columns_X, batch, layers, nodes, Y, X, Z, wb, funcs, learning_rate, epochs);
+  
+  //   save_wb(wb, layers, nodes, columns_Y, columns_X);
+  
   ////////////////////////////////////////////////////////////
   // Freeing stuff
   ////////////////////////////////////////////////////////////

@@ -3,11 +3,9 @@
 #include <math.h>
 #include <time.h>
 
-#include "../src/headers/neurons.h"
+#include "../src/headers/neurons_cpu.h"
+#include "../src/headers/training_cpu.h"
 #include "../src/headers/utils.h"
-#include "../src/headers/training.h"
-
-#include "../src/headers/prints.h"
 
 int main(void)
 {
@@ -87,9 +85,7 @@ int main(void)
   // wb[0][l][i * columns_X + j] weights at layer l=0,...,layers, i'th row j'th column
   // wb[1][l][j] biases at layer l=0,...,layers always 1 row and j'th column
   double ***wb = init_wb(w_variance, layers, nodes, funcs, columns_Y, columns_X);
-  
-  // 	showWB(layers, nodes, columns_Y, columns_X, wb);
-  
+    
   // The outputs from neurons
   // We care about Z[1][layers][i * columns + j] which is the final prediction
   // The rest are used for the updating
@@ -97,9 +93,7 @@ int main(void)
   
   // All the updating in one function (manipulates wb)
   update_gd(rows, columns_Y, columns_X, batch, layers, nodes, X, X, Z, wb, funcs, learning_rate, epochs);
-  
-  // 	showWB(layers, nodes, columns_Y, columns_X, wb);
-  
+    
   ////////////////////////////////////////////////////////////
   // Freeing stuff
   ////////////////////////////////////////////////////////////

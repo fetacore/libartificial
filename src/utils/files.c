@@ -5,7 +5,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-void save_wb(double ***wb, int layers, int nodes[layers], int columns_Y, int columns_X) {
+void save_wb(double ***wb, const int layers, const int nodes[layers],
+             const size_t columns_Y, const size_t columns_X) {
   
   int l;
   
@@ -23,16 +24,14 @@ void save_wb(double ***wb, int layers, int nodes[layers], int columns_Y, int col
   
   if (stat(strcat(w_path, "/weights"), &st) == -1) {
     mkdir(w_path, 0700);
-    printf("\nCreated wb/weights directory\n");
+    printf("\nCreated ./wb/weights directory\n");
   }
   
-  if (stat(strcat(b_path, "/wb"), &st) == -1) {
-    mkdir(b_path, 0700);
-  }
+  strcat(b_path, "/wb");
   
   if (stat(strcat(b_path, "/biases"), &st) == -1) {
     mkdir(b_path, 0700);
-    printf("\nCreated wb/biases directory\n");
+    printf("\nCreated ./wb/biases directory\n");
   }
   
   FILE *ptr_fp;
@@ -46,7 +45,7 @@ void save_wb(double ***wb, int layers, int nodes[layers], int columns_Y, int col
     char filename[15] = "layer_";
     sprintf(number, "%d", l);
     strcat(filename, number);
-    strcat(filename, ".data");
+    strcat(filename, ".bin");
     
     strcpy(w_path_filename, w_path);
     strcpy(b_path_filename, b_path);
@@ -55,7 +54,7 @@ void save_wb(double ***wb, int layers, int nodes[layers], int columns_Y, int col
     
     strcat(w_path_filename, filename);
     strcat(b_path_filename, filename);
-        
+    
     if((ptr_fp = fopen(w_path_filename, "wb")) == NULL) {
 			printf("Unable to create file!\n");
 			exit(1);
@@ -110,7 +109,7 @@ void save_wb(double ***wb, int layers, int nodes[layers], int columns_Y, int col
     
 }
 
-double ***load_wb(int layers, int nodes[layers], int columns_Y, int columns_X) {
+double ***load_wb(const int layers, const int nodes[layers], const size_t columns_Y, const size_t columns_X) {
   
   int l;
   
@@ -156,7 +155,7 @@ double ***load_wb(int layers, int nodes[layers], int columns_Y, int columns_X) {
     char filename[15] = "layer_";
     sprintf(number, "%d", l);
     strcat(filename, number);
-    strcat(filename, ".data");
+    strcat(filename, ".bin");
     
     strcpy(w_path_filename, w_path);
     strcpy(b_path_filename, b_path);

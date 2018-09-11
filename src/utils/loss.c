@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-double rmse(int rows, int columns_Y, double *Y, double *prediction) {
+double rmse(const size_t rows, const size_t columns_Y, const double *Y, const double *prediction) {
   int i, thresh = rows * columns_Y;
   double loss = 0.0;
   double dif;

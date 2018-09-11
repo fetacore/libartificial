@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int ***imgpad(int ***images, int no_of_images, int img_width, int img_height, int img_channels,
-              int padding, // Zeros around
-              int delete_originals // 0 if no, 1 if yes (keep only vectorized in memory)
-             )
+int ***imgpad(int ***images, const int no_of_images,
+              const size_t img_width, const size_t img_height, const size_t img_channels,
+              const size_t padding, // Zeros around
+              const size_t delete_originals // 0 if no, 1 if yes (keep only vectorized in memory)
+            )
 {
   if (padding == 0) {
     return images;
@@ -47,14 +48,16 @@ int ***imgpad(int ***images, int no_of_images, int img_width, int img_height, in
 }
 
 
-int **im2col(int ***images, int no_of_images, int img_width, int img_height, int img_channels,
-             int spatial, // width and height of weights
-             int stride, // (img_width - spatial + 2 * padding)/stride should be int
-             int padding, // Zeros around
-             int delete_originals // 0 if no, 1 if yes (keep only vectorized in memory)
+int **im2col(int ***images, const int no_of_images,
+             const size_t img_width, const size_t img_height, const size_t img_channels,
+             const size_t spatial, // width and height of weights
+             const size_t stride, // (img_width - spatial + 2 * padding)/stride should be int
+             const size_t padding, // Zeros around
+             const size_t delete_originals // 0 if no, 1 if yes (keep only vectorized in memory)
             )
 {
-  int image, i, i_prime, j, pixel_x, pixel_y, rgb, multiplication;
+  int image, i, i_prime, j, pixel_x, pixel_y, multiplication;
+  size_t rgb;
   
   // How many boxes horizontally
   int locations_width = (img_width - spatial + 2 * padding)/stride + 1;
@@ -140,8 +143,8 @@ int **im2col(int ***images, int no_of_images, int img_width, int img_height, int
   }
   
   if (delete_originals == 1 && padding == 0) {
-    for (i = 0; i < no_of_images; i++) {
-      for (j = 0; j < img_width * img_height; j++) {
+    for (i = 0; i < (int)no_of_images; i++) {
+      for (j = 0; j < (int)(img_width * img_height); j++) {
         free(images[i][j]);
       }
       free(images[i]);

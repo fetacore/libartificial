@@ -1,36 +1,39 @@
 #ifndef utils_h__
 #define utils_h__
+
+#include <stdlib.h>
 #include <string.h>
 
-extern void activate(double *X_active, double *X, int threshold, char *);
-extern void gradient(double *X_graded, double *X, int threshold, char *);
-extern void activate_rbf(double *X_active, double *X, double center, double spread, int p, int threshold, char *);
+extern void activate(double *X_active, const double *X, const int threshold, char *);
+extern void gradient(double *X_graded, const double *X, const int threshold, char *);
 extern void minkowski(double *X, double *Y, int p, int threshold);
-extern void randomize(double *X, int rows, int columns_X);
-extern void normalize(double *X, int rows, int columns_X);
-extern double ***init_wb(double variance, int layers, int nodes[layers], char funcs[layers][30],
-                         int columns_Y, int columns_X);
-extern double rand_normal(double mu, double sigma);
-extern double rmse(int rows, int columns_Y, double *Y, double *Z_active);
+extern void randomize(double *X, const size_t rows, const size_t columns_X);
+extern void normalize(double *X, const size_t rows, const size_t columns_X);
+extern double ***init_wb(const double variance, const int layers, const int nodes[layers], char funcs[layers][30],
+                         const size_t columns_Y, const size_t columns_X);
+extern double rand_normal(const double mu, const double sigma);
+extern double rmse(const size_t rows, const size_t columns_Y, const double *Y, const double *Z_active);
 
 // Training utility
-extern void row_sum(double *row_sum, double *matrix, int rows, int columns);
+extern void row_sum(double *row_sum, const double *matrix, const size_t rows, const size_t columns);
 
 // Convolution utility
-extern int **im2col(int ***images, int no_of_images, int img_width, int img_height, int img_channels,
-                    int spatial, // width and height of weights
-                    int stride, // (img_width - spatial + 2 * padding)/stride should be int
-                    int padding, // Zeros around
-                    int delete_originals // 0 if no, 1 if yes (keep only vectorized in memory)
+extern int **im2col(int ***images,const int no_of_images,
+                    const size_t img_width, const size_t img_height, const size_t img_channels,
+                    const size_t spatial, // width and height of weights
+                    const size_t stride, // (img_width - spatial + 2 * padding)/stride should be int
+                    const size_t padding, // Zeros around
+                    const size_t delete_originals // 0 if no, 1 if yes (keep only vectorized in memory)
                    );
 
 // Saving and loading wb files
-extern void save_wb(double ***wb, int layers, int nodes[layers], int columns_Y, int columns_X);
-extern double ***load_wb(int layers, int nodes[layers], int columns_Y, int columns_X);
+extern void save_wb(double ***wb, const int layers, const int nodes[layers],
+                    const size_t columns_Y, const size_t columns_X);
+extern double ***load_wb(const int layers, const int nodes[layers], const size_t columns_Y, const size_t columns_X);
 
 // Freedom
-extern void delete_wb(int layers, double ***wb);
-extern void delete_Z(int layers, double ***Z);
-extern void delete_img_vector(int **images, int no_of_images);
+extern void delete_wb(const int layers, double ***wb);
+extern void delete_Z(const int layers, double ***Z);
+extern void delete_img_vector(int **images, const size_t no_of_images);
 
 #endif  // utils_h__

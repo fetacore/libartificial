@@ -11,7 +11,7 @@ void swap(double *a, double *b)
 }
 
 // A function to generate a random permutation of inputs
-void randomize(double *X, int rows, int columns_X)
+void randomize(double *X, const size_t rows, const size_t columns_X)
 {
   // Use a different seed value so that we don't get same
   // result each time we run this program

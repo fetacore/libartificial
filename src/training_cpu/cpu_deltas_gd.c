@@ -10,11 +10,12 @@
 // (stochastic => rows = 1)
 // (mini-batch => rows = rows of mini set)
 
-void delta_gd(double **deltas, int rows, int columns_Y, int layers, double *Y, double ***Z, double ***wb,
-              int nodes[layers], char funcs[layers+1][30])
+void delta_gd(double **deltas, const size_t rows, const size_t columns_Y, const int layers,
+              const double *Y, double ***Z, double ***wb,
+              const int nodes[layers], char funcs[layers+1][30])
 {
   int l, i;
-  int for_helper = rows * columns_Y;
+  size_t for_helper = rows * columns_Y;
   // Deltas filling
   //////////////////////////////////////////////////////////////////
   // Gradient of layer's unactivated output
@@ -24,20 +25,28 @@ void delta_gd(double **deltas, int rows, int columns_Y, int layers, double *Y, d
   // We do not need them at the output layer
   //////////////////////////////////////////////////////////////////
   
+  // Last layer
   switch (strcmp(funcs[layers], "linear")) {
     case 0:
       i = for_helper - 1;
-      while (i >= 0) {
-        deltas[layers][i--] = Z[1][layers][i] - Y[i];
-      }
+      do {
+        deltas[layers][i] = Z[1][layers][i] - Y[i];
+        i--;
+      } while (i >= 0);
       break;
     default:
       gradient(deltas[layers], Z[0][layers], for_helper, funcs[layers]);
+      i = for_helper - 1;
+      do {
+        deltas[layers][i] = (Z[1][layers][i] - Y[i]) * deltas[layers][i];
+        i--;
+      } while (i >= 0);
       break;
   }
   
   l = layers - 1;
-  while (l >= 0) {
+  // Layers backwards
+  do {
     for_helper = rows * nodes[l];
     
     help_1[l] = malloc(for_helper * sizeof(double));
@@ -45,9 +54,9 @@ void delta_gd(double **deltas, int rows, int columns_Y, int layers, double *Y, d
     
     gradient(help_1[l], Z[0][l], for_helper, funcs[l]);
     i = for_helper;
-    while (i >= 0) {
+    do {
       help_2[l][i--] = 0.0;
-    }
+    } while (i >= 0);
     
     switch (l == layers - 1) {
       // True
@@ -59,14 +68,15 @@ void delta_gd(double **deltas, int rows, int columns_Y, int layers, double *Y, d
                     1.0, // scaling factor (none)
                     deltas[l+1], columns_Y, // C = A * B -> matrix A, ldA
                     wb[0][l+1], columns_Y, // C = A * B -> matrix B, ldB
-                    1.0, // scaling factor for C (none)
+                    0.0, // scaling factor for C (none)
                     help_2[l], nodes[l]); // C, ldC
         
         // Hadamard product
         i = for_helper;
-        while (i >= 0) {
-          deltas[l][i--] = help_1[l][i] * help_2[l][i];
-        }
+        do {
+          deltas[l][i] = help_1[l][i] * help_2[l][i];
+          i--;
+        } while (i >= 0);
         
         free(help_2[l]);
         free(help_1[l]);
@@ -82,21 +92,22 @@ void delta_gd(double **deltas, int rows, int columns_Y, int layers, double *Y, d
                     1.0, // scaling factor (none)
                     deltas[l+1], nodes[l+1], // C = A * B -> matrix A, ldA
                     wb[0][l+1], nodes[l+1], // C = A * B -> matrix B,  ldB
-                    1.0, // scaling factor for C (none)
+                    0.0, // scaling factor for C (none)
                     help_2[l], nodes[l]); // C, ldC
         
         // Hadamard product
         i = for_helper;
-        while (i >= 0) {
-          deltas[l][i--] = help_1[l][i] * help_2[l][i];
-        }
+        do {
+          deltas[l][i] = help_1[l][i] * help_2[l][i];
+          i--;
+        } while (i >= 0);
         
         free(help_2[l]);
         free(help_1[l]);
         l--;
         continue;
     }
-  }
+  } while (l >= 0);
   free(help_2);
   free(help_1);
 }

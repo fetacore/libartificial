@@ -1,8 +1,8 @@
 # libartificial
 
-This is a pure C shared library for arbitrarily deep neural networks. It is my first attempt to write a scientific project in C but the speed of the tests is already outstanding compared to the implementation in Python. I made this library in order to assist me with my PhD Thesis research questions.
+This is a pure C shared library for arbitrarily deep neural networks. It is my first attempt to write a scientific project in C but the speed is already outstanding. I made this library in order to assist me with my PhD Thesis research questions.
 
-It is CPU-only at the moment but I have plans to extend it with [CLBlast](https://github.com/CNugteren/CLBlast) or cuBLAS (if I get my hands on an NVIDIA GPU). I also have plans to extend it for CNNs and RNNs. The bindings for Python and JS (with webassembly) will be ready soon.
+It is CPU ([OpenBLAS](https://github.com/xianyi/OpenBLAS)) and GPU ([CLBlast](https://github.com/CNugteren/CLBlast)) friendly (soon with support for cuBLAS if I get my hands on an NVIDIA GPU). I have plans to extend it for CNNs and RNNs. The bindings for Python and JS (with webassembly) will be ready soon.
 
 The feedforward procedure does not have a hardcoded depth (it can have as many layers as you want).
 
@@ -20,27 +20,62 @@ rm -rf .git
 
 ### Prerequisites
 
-In order to compile the library you need to install [OpenBLAS](https://github.com/xianyi/OpenBLAS) and, in case your OS does not have it, libgfortran.
+In order to compile the library for CPU you need to install [OpenBLAS](https://github.com/xianyi/OpenBLAS).
+In order to compile the library for GPU you need to install [CLBlast](https://github.com/CNugteren/CLBlast).
+
+## Specifics for CLBlast
+
+It is recommended to do the optimizations proposed by the author. The library assumes that CLBlast is in the libartificial folder under the name "clblast".
+You do the following:
+
+```
+git clone https://github.com/CNugteren/CLBlast.git clblast
+cd clblast && mkdir build && cd build
+cmake .. && make
+cd ../../
+
+```
 
 ### Compilation
 
 In order to compile the library do the following (assuming you continue from where we left off)
 
+- For CPU
+
 ```
-make
+make cpu
+```
+- For GPU
+
+```
+make gpu
 ```
 
 ## Examples
 
-For the time being I have two examples which you can find in the "examples" folder:
-- MLP regression that you can run as follows:
+For the time being I have four examples which you can find in the "examples" folder:
+- MLP regression with CPU:
+
 ```
 make test1
 ```
 
-- Autoencoder:
+- MLP regression with GPU
+
 ```
 make test2
+```
+
+- Autoencoder (CPU):
+
+```
+make test3
+```
+
+- CNN (only im2col at the moment):
+
+```
+make test4
 ```
 
 ## API

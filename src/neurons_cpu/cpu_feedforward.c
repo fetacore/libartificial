@@ -1,18 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <cblas.h>
 
 #include "../headers/utils.h"
-#include "../headers/training.h"
-#include "../headers/prints.h"
+#include "../headers/training_cpu.h"
 
-double ***feedforward(int rows, int columns_Y, int columns_X, int layers, double *X, double ***wb,
-                      int nodes[layers], char funcs[layers+1][30])
+double ***feedforward(const size_t rows, const size_t columns_Y, const size_t columns_X, const int layers,
+                      const double *X, double ***wb,
+                      const int nodes[layers], char funcs[layers+1][30])
 {
   // l is for layers
   // i is for each row * column of X, Y
-  int l = layers, i = rows * columns_Y - 1;
-  
+  int l = layers;
+  int i = rows * columns_Y - 1;
+    
   // feeds at every layer
   double ***Z = malloc(2 * sizeof(double **));
   Z[0] = malloc((layers + 1) * sizeof(double *));
@@ -36,7 +36,6 @@ double ***feedforward(int rows, int columns_Y, int columns_X, int layers, double
   }
   
   // Directly manipulates Z
-  feedforward_update(Z, rows, columns_Y, columns_X, layers, X,wb, nodes, funcs);
-  
+  feedforward_update(Z, rows, columns_Y, columns_X, layers, X, wb, nodes, funcs);  
   return Z;
 }

@@ -3,7 +3,7 @@
 #include <math.h>
 #include <time.h>
 
-double rand_normal(double mu, double sigma) {//Box muller method
+double rand_normal(const double mu, const double sigma) {//Box muller method
   
   static double n2 = 0.0;
   static double n2_cached = 0.0;
