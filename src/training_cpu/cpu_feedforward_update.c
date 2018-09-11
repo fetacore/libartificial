@@ -14,7 +14,7 @@ void feedforward_update(double ***Z, const size_t rows, const size_t columns_Y, 
   // l is for layers
   // i for each row
   // j for columns at each layer
-  int l = layers, for_helper = rows * nodes[0], i = for_helper - 1, j = nodes[0] - 1;
+  int l, for_helper = rows * nodes[0], i = for_helper - 1, j = nodes[0] - 1;
   
   // Input layer
   cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,

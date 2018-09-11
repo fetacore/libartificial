@@ -33,7 +33,7 @@ int main(void)
   
   // Hyperparameters
   ///////////////////////////////////////////////////////////////////////////
-  const int batch = 128; // Divisor of 1024
+  const int batch = 256; // Divisor of 1024
   const double w_variance = 0.01; // For the weight initialization
   const double learning_rate = 0.0000001;
   const int epochs = 14;
