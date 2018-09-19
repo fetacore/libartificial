@@ -7,8 +7,8 @@
 #include "../headers/utils.h"
 #include "../headers/training_gpu.h"
 
-double ***feedforward_gpu(const size_t rows, const size_t columns_Y, const size_t columns_X, const int layers,
-                          const double *X, double ***wb,
+double ***gpu_feedforward(const size_t rows, const size_t columns_Y, const size_t columns_X, const int layers,
+                          double *X, double ***wb,
                           const int nodes[layers], char funcs[layers+1][30])
 {
   // l is for layers
@@ -56,7 +56,7 @@ double ***feedforward_gpu(const size_t rows, const size_t columns_Y, const size_
   cl_device_id device = devices[device_id];
   
   // Directly manipulates Z
-  feedforward_update_gpu(Z, rows, columns_Y, columns_X, layers, X, wb, nodes, funcs, device);
+  gpu_feedforward_update(rows, columns_Y, columns_X, layers, Z, X, wb, nodes, funcs, device);
   
   free(platforms);
   free(devices);

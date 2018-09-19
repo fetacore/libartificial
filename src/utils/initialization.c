@@ -2,15 +2,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <time.h>
 
 #include "../headers/utils.h"
+
+#define KGRN  "\x1B[32m"
+#define RESET "\033[0m"
 
 //	Variance is needed since depending on the data, tanh/relu may give nans.
 //	Variance < 1 and close to 0.01 if data range too large
 
 double ***init_wb(const double variance, const int layers,
-                  const int nodes[layers], char funcs[layers][30],
+                  const int nodes[layers], char funcs[layers+1][30],
                   const size_t columns_Y, const size_t columns_X)
 {
   // l layers
@@ -75,7 +77,7 @@ double ***init_wb(const double variance, const int layers,
             
         // l = layers
         default:
-          multiplication = nodes[l-1] * (int)columns_Y;
+          multiplication = nodes[l-1] * columns_Y;
           wb[0][l] = malloc(multiplication * sizeof(double));
           wb[1][l] = malloc(columns_Y * sizeof(double));
           
@@ -150,5 +152,6 @@ double ***init_wb(const double variance, const int layers,
         break;
     }
   }
+  printf(KGRN "\nWeights and biases initialized successfully!\n" RESET);
   return wb;
 }

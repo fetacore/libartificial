@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-void row_sum(double *row_sum, const double *matrix,
+void row_sum(double *row_sum, double *matrix,
              const size_t rows, const size_t columns)
 {
   size_t i = 0, j = 0;

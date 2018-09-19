@@ -1,7 +1,7 @@
 #include <string.h>
 #include <math.h>
 
-void gradient(double *X_graded, const double *X, const int threshold, char *function) {
+void gradient(double *X_graded, double *X, const int threshold, char *function) {
   
   int i = threshold - 1;
   double e_X = 0.0, e_mX = 0.0, y = 0.0;

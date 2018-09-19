@@ -36,11 +36,10 @@ int main(void)
   const int batch = 256; // Divisor of 1024
   const double w_variance = 0.01; // For the weight initialization
   const double learning_rate = 0.0000001;
-  const int epochs = 14;
+  const int epochs = 6;
   
   const int layers = 7;
-  
-  const int nodes[7] = {3200, 230, 397, 540, 408, 390, 480};
+  const int nodes[7] = {3200, 2309, 397, 540, 408, 390, 480};
   char funcs[7 + 1][30] = {
     "logistic",
     "relu",
@@ -48,33 +47,33 @@ int main(void)
     "lrelu",
     "gauss",
     "softmax",
-    "gauss",
+    "tanh",
     "linear" // Regression and not classification (if classification something other than linear)
   };
   
-  // 	int layers = 3;
-  // 	int nodes[3] = {6200, 9900, 3900};
-  // 	char funcs[4][30] = {
-  // 		"logistic",
-  // 		"logistic",
-  // 		"logistic",
-  // 		"linear" // Regression and not classification (if classification something other than linear)
-  // 	};
+//   	const int layers = 3;
+//   	const int nodes[3] = {6200, 99, 39};
+//   	char funcs[4][30] = {
+//   		"logistic",
+//   		"logistic",
+//   		"logistic",
+//   		"linear" // Regression and not classification (if classification something other than linear)
+//   	};
   
-  // 	int layers = 2;
-  // 	int nodes[2] = {602, 399};
-  // 	char funcs[3][30] = {
-  // 		"logistic",
-  // 		"gauss",
-  // 		"linear" // Regression and not classification (if classification something other than linear)
-  // 	};
+//   	const int layers = 2;
+//   	const int nodes[2] = {602, 3};
+//   	char funcs[3][30] = {
+//   		"logistic",
+//   		"gauss",
+//   		"linear" // Regression and not classification (if classification something other than linear)
+//   	};
   
-  // 	int layers = 1;
-  // 	int nodes[1] = {200};
-  // 	char funcs[2][30] = {
-  // 		"gauss",
-  // 		"linear" // Regression and not classification (if classification something other than linear)
-  // 	};
+//   	const int layers = 1;
+//   	const int nodes[1] = {2009};
+//   	char funcs[2][30] = {
+//   		"gauss",
+//   		"linear" // Regression and not classification (if classification something other than linear)
+//   	};
   ////////////////////////////////////////////////////////////////////////////
   
   // The procedure
@@ -95,16 +94,16 @@ int main(void)
   
   // If you have already saved weights and biases
 //   double ***wb = load_wb(layers, nodes, columns_Y, columns_X);
-    
+  
   // The outputs from neurons
   // We care about Z[1][layers][i * columns + j] which is the final prediction
   // The rest are used for the updating
-  double ***Z = feedforward(rows, columns_Y, columns_X, layers, X, wb, nodes, funcs);
+  double ***Z = cpu_feedforward(rows, columns_Y, columns_X, layers, X, wb, nodes, funcs);
   
   // All the updating in one function (manipulates wb)
-  update_gd(rows, columns_Y, columns_X, batch, layers, nodes, Y, X, Z, wb, funcs, learning_rate, epochs);
-    
-  save_wb(wb, layers, nodes, columns_Y, columns_X);
+  cpu_gd_update(rows, columns_Y, columns_X, batch, layers, nodes, Y, X, Z, wb, funcs, learning_rate, epochs);
+  
+//   save_wb(wb, layers, nodes, columns_Y, columns_X);
 
   ////////////////////////////////////////////////////////////
   // Freeing stuff

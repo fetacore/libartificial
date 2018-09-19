@@ -1,7 +1,7 @@
 #include <string.h>
 #include <math.h>
 
-void activate(double *X_activated, const double *X, const int threshold, char *function) {
+void activate(double *X_activated, double *X, const int threshold, char *function) {
   
   int i = threshold - 1;
   double e_X = 0;
@@ -90,8 +90,8 @@ void activate(double *X_activated, const double *X, const int threshold, char *f
         }
       } while (i >= 0);
       return;
-          default:
-            break;
+    default:
+      break;
   }
   
   switch (strcmp(function, "softplus")) {

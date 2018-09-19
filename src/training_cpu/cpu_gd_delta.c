@@ -10,13 +10,14 @@
 // (stochastic => rows = 1)
 // (mini-batch => rows = rows of mini set)
 
-void delta_gd(double **deltas, const size_t rows, const size_t columns_Y, const int layers,
-              const double *Y, double ***Z, double ***wb,
-              const int nodes[layers], char funcs[layers+1][30])
+void cpu_gd_delta(double **deltas,
+                  const size_t rows, const size_t columns_Y, const int layers,
+                  double *Y, double ***Z, double ***wb,
+                  const int nodes[layers], char funcs[layers+1][30])
 {
   int l, i;
   size_t for_helper = rows * columns_Y;
-  // Deltas filling
+  
   //////////////////////////////////////////////////////////////////
   // Gradient of layer's unactivated output
   double **help_1 = malloc(layers * sizeof(double *));
@@ -24,6 +25,11 @@ void delta_gd(double **deltas, const size_t rows, const size_t columns_Y, const 
   double **help_2 = malloc(layers * sizeof(double *));
   // We do not need them at the output layer
   //////////////////////////////////////////////////////////////////
+  
+  for (l = 0; l < layers; l++) {
+    help_1[l] = malloc((int)rows * nodes[l] * sizeof(double));
+    help_2[l] = malloc((int)rows * nodes[l] * sizeof(double));
+  }
   
   // Last layer
   switch (strcmp(funcs[layers], "linear")) {
@@ -44,47 +50,46 @@ void delta_gd(double **deltas, const size_t rows, const size_t columns_Y, const 
       break;
   }
   
+  // Before last
   l = layers - 1;
-  // Layers backwards
+  for_helper = (int)rows * nodes[l];
+  
+  gradient(help_1[l], Z[0][l], for_helper, funcs[l]);
+  
+  cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
+              rows, // Rows of help_2[0][j]
+              nodes[l], // Columns of help_2[0][j]
+              columns_Y, // columns of A, rows of B
+              1.0, // scaling factor (none)
+              deltas[l+1], columns_Y, // C = A * B -> matrix A, ldA
+              wb[0][l+1], columns_Y, // C = A * B -> matrix B, ldB
+              0.0, // scaling factor for C (none)
+              help_2[l], nodes[l]); // C, ldC
+  
+  // Hadamard product
+  i = for_helper - 1;
   do {
-    for_helper = rows * nodes[l];
-    
-    help_1[l] = malloc(for_helper * sizeof(double));
-    help_2[l] = malloc(for_helper * sizeof(double));
-    
-    gradient(help_1[l], Z[0][l], for_helper, funcs[l]);
-    i = for_helper;
-    do {
-      help_2[l][i--] = 0.0;
-    } while (i >= 0);
-    
-    switch (l == layers - 1) {
-      // True
-      case 1:
-        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
-                    rows, // Rows of help_2[0][j]
-                    nodes[l], // Columns of help_2[0][j]
-                    columns_Y, // columns of A, rows of B
-                    1.0, // scaling factor (none)
-                    deltas[l+1], columns_Y, // C = A * B -> matrix A, ldA
-                    wb[0][l+1], columns_Y, // C = A * B -> matrix B, ldB
-                    0.0, // scaling factor for C (none)
-                    help_2[l], nodes[l]); // C, ldC
-        
-        // Hadamard product
-        i = for_helper;
-        do {
-          deltas[l][i] = help_1[l][i] * help_2[l][i];
-          i--;
-        } while (i >= 0);
-        
+    deltas[l][i] = help_1[l][i] * help_2[l][i];
+    i--;
+  } while (i >= 0);
+  
+  switch (layers == 1) {
+    case 1:
+      for (l = 0; l < layers; l++) {
         free(help_2[l]);
         free(help_1[l]);
-        l--;
-        continue;
-      // False
-      default:
-        // find help_2
+      }
+      free(help_2);
+      free(help_1);
+      return;
+    default:
+      // All other layers
+      l = layers - 2;
+      do {
+        for_helper = (int)rows * nodes[l];
+        
+        gradient(help_1[l], Z[0][l], for_helper, funcs[l]);
+        
         cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
                     rows, // Rows of help_2[0][j]
                     nodes[l], // Columns of help_2[0][j]
@@ -96,18 +101,19 @@ void delta_gd(double **deltas, const size_t rows, const size_t columns_Y, const 
                     help_2[l], nodes[l]); // C, ldC
         
         // Hadamard product
-        i = for_helper;
+        i = for_helper - 1;
         do {
           deltas[l][i] = help_1[l][i] * help_2[l][i];
           i--;
         } while (i >= 0);
-        
+        l--;
+      } while (l >= 0);
+      for (l = 0; l < layers; l++) {
         free(help_2[l]);
         free(help_1[l]);
-        l--;
-        continue;
-    }
-  } while (l >= 0);
-  free(help_2);
-  free(help_1);
+      }
+      free(help_2);
+      free(help_1);
+      return;
+  }
 }

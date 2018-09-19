@@ -11,17 +11,17 @@ OBJS_GPU = $(SRCS_GPU:.c=.o)
 OBJS = $(OBJS_CPU) $(OBJS_GPU)
 
 TARGET_LIB_CPU = libartificial$(DLLEXT)
-TARGET_LIB_GPU = libartificialgpu$(DLLEXT)
+TARGET_LIB_GPU = libartificial_gpu$(DLLEXT)
 TARGET_LIBS = $(TARGET_LIB_CPU) $(TARGET_LIB_GPU)
 
-CFLAGS_CPU = -fPIC -Wall -Wextra -march=native -O3 -pedantic-errors
-CFLAGS_GPU = -L./clblast/build -Wl,-rpath=./clblast/build -fPIC -Wall -Wextra -march=native -O3 -pedantic-errors
+CFLAGS_CPU = -fPIC -pthread -Wall -Wextra -march=native -O3 -pedantic-errors
+CFLAGS_GPU = -L./clblast/build -Wl,-rpath=./clblast/build -fPIC -pthread -Wall -Wextra -march=native -O3 -pedantic-errors
 
 LDFLAGS_CPU = -shared
 LDFLAGS_GPU = -L./clblast/build -Wl,-rpath=./clblast/build -shared
 
 LIBS_CPU = -lm -lopenblas -lpthread
-LIBS_GPU = -lm -lclblast
+LIBS_GPU = -lm -lclblast -lpthread
 
 VALGRINDOPTS = valgrind --leak-check=yes --track-origins=yes
 
@@ -57,7 +57,7 @@ test1:
 test2:
 	make clean &&\
 	cd ./examples/;\
-	$(CC) -L../ -Wl,-rpath=../ -L../clblast/build -Wl,-rpath=../clblast/build -Wall -o ./test2 ./mlp_reg_gpu.c -lm -lclblast -lartificialgpu;\
+	$(CC) -L../ -Wl,-rpath=../ -L../clblast/build -Wl,-rpath=../clblast/build -Wall -o ./test2 ./mlp_reg_gpu.c -lm -lclblast -lartificial_gpu;\
 	./test2
 
 .PHONY: test3

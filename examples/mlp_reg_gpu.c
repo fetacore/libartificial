@@ -36,10 +36,10 @@ int main(void)
   const int batch = 256; // Divisor of 1024
   const double w_variance = 0.01; // For the weight initialization
   const double learning_rate = 0.0000000001;
-  const int epochs = 14;
+  const int epochs = 5;
   
   const int layers = 7;
-  const int nodes[7] = {3200, 230, 397, 540, 408, 390, 480};
+  const int nodes[7] = {3200, 2309, 397, 540, 408, 390, 480};
   char funcs[7 + 1][30] = {
     "logistic",
     "relu",
@@ -68,12 +68,12 @@ int main(void)
   // 		"linear" // Regression and not classification (if classification something other than linear)
   // 	};
   
-  // 	int layers = 1;
-  // 	int nodes[1] = {200};
-  // 	char funcs[2][30] = {
-  // 		"gauss",
-  // 		"linear" // Regression and not classification (if classification something other than linear)
-  // 	};
+//   	int layers = 1;
+//   	int nodes[1] = {200};
+//   	char funcs[2][30] = {
+//   		"gauss",
+//   		"linear" // Regression and not classification (if classification something other than linear)
+//   	};
   ////////////////////////////////////////////////////////////////////////////
   
   // The procedure
@@ -97,18 +97,18 @@ int main(void)
   // The outputs from neurons
   // We care about Z[1][layers][i * columns + j] which is the final prediction
   // The rest are used for the updating
-  double ***Z = feedforward_gpu(rows, columns_Y, columns_X, layers, X, wb, nodes, funcs);
-  
+  double ***Z = gpu_feedforward(rows, columns_Y, columns_X, layers, X, wb, nodes, funcs);
+  /*
   printf("\n");
   for (i = 0; i < rows-1000; i++) {
     for (j = 0; j < columns_Y; j++) {
       printf("%f\t", Z[1][layers][i * columns_Y + j]);
     }
     printf("\n");
-  }
+  }*/
   
   // All the updating in one function (manipulates wb)
-//   update_gd_gpu(rows, columns_Y, columns_X, batch, layers, nodes, Y, X, Z, wb, funcs, learning_rate, epochs);
+  gpu_gd_update(rows, columns_Y, columns_X, batch, layers, nodes, Y, X, Z, wb, funcs, learning_rate, epochs);
   
   //   save_wb(wb, layers, nodes, columns_Y, columns_X);
   
