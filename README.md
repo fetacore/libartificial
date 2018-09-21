@@ -14,7 +14,7 @@ I will try to compile the library with Visual Studio and get back to you on how 
 In order to get libartificial you have to do the following (assuming working installation of git)
 
 ```
-git clone https://github.com/jroukis/libartificial.git
+git clone https://github.com/fetacore/libartificial.git
 cd libartificial
 rm -rf .git
 ```
