@@ -2,7 +2,12 @@
 
 This is a small pure C shared library for arbitrarily deep neural networks. It is my first attempt to write a scientific project in C but the speed is already outstanding. I made this library in order to assist me with my doctoral research.
 
-It is CPU ([OpenBLAS](https://github.com/xianyi/OpenBLAS)) and GPU ([CLBlast](https://github.com/CNugteren/CLBlast)) friendly (soon with support for cuBLAS if I get my hands on an NVIDIA GPU). I have plans to extend it for CNNs and RNNs. The bindings for Python and JS (with webassembly) will be ready soon.
+It is CPU ([OpenBLAS](https://github.com/xianyi/OpenBLAS)) and GPU ([CLBlast](https://github.com/CNugteren/CLBlast)) friendly (soon with support for cuBLAS if I get my hands on an NVIDIA GPU). I have plans to extend it for CNNs and RNNs.
+
+## Bindings
+
+- Python: [python-libartificial](https://github.com/fetacore/python-libartificial)
+- Javascript (WASM): tba
 
 The feedforward procedure does not have a hardcoded depth (it can have as many layers as you want).
 
