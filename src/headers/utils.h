@@ -1,20 +1,17 @@
 #ifndef utils_h__
 #define utils_h__
 
-#include <stdlib.h>
-#include <string.h>
-
 extern void activate(double *X_active, double *X, const int threshold, char *);
 extern void gradient(double *X_graded, double *X, const int threshold, char *);
-extern void randomize(double *X, const size_t rows, const size_t columns_X);
-extern void normalize(double *X, const size_t rows, const size_t columns_X);
+extern void randomize(double *X, const int rows, const int columns_X);
+extern void normalize(double *X, const int rows, const int columns_X);
 extern double ***init_wb(const double variance, const int layers, const int nodes[layers], char funcs[layers+1][30],
-                         const size_t columns_Y, const size_t columns_X);
+                         const int columns_Y, const int columns_X);
 extern double rand_normal(const double mu, const double sigma);
-extern double rmse(const size_t rows, const size_t columns_Y, const double *Y, const double *Z_active);
+extern double rmse(const int rows, const int columns_Y, const double *Y, const double *Z_active);
 
 // Training utility
-extern void row_sum(double *row_sum, double *matrix, const size_t rows, const size_t columns);
+extern void row_sum(double *row_sum, double *matrix, const int rows, const int columns);
 
 // Convolution utility
 extern int **im2col(int ***images,const int no_of_images,
@@ -27,8 +24,8 @@ extern int **im2col(int ***images,const int no_of_images,
 
 // Saving and loading wb files
 extern void save_wb(double ***wb, const int layers, const int nodes[layers],
-                    const size_t columns_Y, const size_t columns_X);
-extern double ***load_wb(const int layers, const int nodes[layers], const size_t columns_Y, const size_t columns_X);
+                    const int columns_Y, const int columns_X);
+extern double ***load_wb(const int layers, const int nodes[layers], const int columns_Y, const int columns_X);
 
 // Freedom
 extern void delete_wb(const int layers, double ***wb);

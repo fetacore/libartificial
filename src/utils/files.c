@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 void save_wb(double ***wb, const int layers, const int nodes[layers],
-             const size_t columns_Y, const size_t columns_X) {
+             const int columns_Y, const int columns_X) {
   
   int l;
   
@@ -109,7 +109,7 @@ void save_wb(double ***wb, const int layers, const int nodes[layers],
     
 }
 
-double ***load_wb(const int layers, const int nodes[layers], const size_t columns_Y, const size_t columns_X) {
+double ***load_wb(const int layers, const int nodes[layers], const int columns_Y, const int columns_X) {
   
   int l;
   

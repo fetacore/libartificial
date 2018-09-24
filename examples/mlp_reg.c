@@ -9,19 +9,19 @@
 
 int main(void)
 {
-  int i;
+  int i, j;
   
   // The model
   ///////////////////////////////////////////////////////////////////////////
-  const size_t columns_X = 3;
-  const size_t columns_Y = 1;
-  const size_t rows = 1024;
+  const int columns_X = 3;
+  const int columns_Y = 1;
+  const int rows = 1024;
   
   double *X = calloc(rows * columns_X, sizeof(double));
   
   srand(time(NULL));
   
-  for(i = 0; i < (rows * columns_X); i++) {
+  for(i = 0; i < rows * columns_X; i++) {
     X[i] = rand_normal(30.0, 2.0);
   }
   
@@ -34,22 +34,22 @@ int main(void)
   // Hyperparameters
   ///////////////////////////////////////////////////////////////////////////
   const int batch = 256; // Divisor of 1024
-  const double w_variance = 0.01; // For the weight initialization
-  const double learning_rate = 0.0000001;
-  const int epochs = 6;
+  const double w_variance = 1; // For the weight initialization
+  const double learning_rate = 0.000001;
+  const int epochs = 1000;
   
-  const int layers = 7;
-  const int nodes[7] = {3200, 2309, 397, 540, 408, 390, 480};
-  char funcs[7 + 1][30] = {
-    "logistic",
-    "relu",
-    "tanh",
-    "lrelu",
-    "gauss",
-    "softmax",
-    "tanh",
-    "linear" // Regression and not classification (if classification something other than linear)
-  };
+//   const int layers = 7;
+//   const int nodes[7] = {3829, 230, 3096, 546, 448, 39, 48};
+//   char funcs[7 + 1][30] = {
+//     "logistic",
+//     "relu",
+//     "logistic",
+//     "lrelu",
+//     "gauss",
+//     "tanh",
+//     "softmax",
+//     "linear" // Regression and not classification (if classification something other than linear)
+//   };
   
 //   	const int layers = 3;
 //   	const int nodes[3] = {6200, 99, 39};
@@ -68,12 +68,12 @@ int main(void)
 //   		"linear" // Regression and not classification (if classification something other than linear)
 //   	};
   
-//   	const int layers = 1;
-//   	const int nodes[1] = {2009};
-//   	char funcs[2][30] = {
-//   		"gauss",
-//   		"linear" // Regression and not classification (if classification something other than linear)
-//   	};
+  	const int layers = 1;
+  	const int nodes[1] = {340};
+  	char funcs[2][30] = {
+  		"logistic",
+  		"linear" // Regression and not classification (if classification something other than linear)
+  	};
   ////////////////////////////////////////////////////////////////////////////
   
   // The procedure
@@ -85,12 +85,15 @@ int main(void)
   // Then we randomize the inputs
   randomize(X, rows, columns_X);
   
+  double ***wb;
+  double ***Z;
+  
   // We initialize weights and biases at every layer (if we do not already have them)
   // wb[0] the weights
   // wb[1] the biases
   // wb[0][l][i * columns_X + j] weights at layer l=0,...,layers, i'th row j'th column
   // wb[1][l][j] biases at layer l=0,...,layers always 1 row and j'th column
-  double ***wb = init_wb(w_variance, layers, nodes, funcs, columns_Y, columns_X);
+  wb = init_wb(w_variance, layers, nodes, funcs, columns_Y, columns_X);
   
   // If you have already saved weights and biases
 //   double ***wb = load_wb(layers, nodes, columns_Y, columns_X);
@@ -98,7 +101,7 @@ int main(void)
   // The outputs from neurons
   // We care about Z[1][layers][i * columns + j] which is the final prediction
   // The rest are used for the updating
-  double ***Z = cpu_feedforward(rows, columns_Y, columns_X, layers, X, wb, nodes, funcs);
+  Z = cpu_feedforward(rows, columns_Y, columns_X, layers, X, wb, nodes, funcs);
   
   // All the updating in one function (manipulates wb)
   cpu_gd_update(rows, columns_Y, columns_X, batch, layers, nodes, Y, X, Z, wb, funcs, learning_rate, epochs);

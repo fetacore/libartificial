@@ -11,7 +11,7 @@
 // (mini-batch => rows = rows of mini set)
 
 void cpu_gd_delta(double **deltas,
-                  const size_t rows, const size_t columns_Y, const int layers,
+                  const int rows, const int columns_Y, const int layers,
                   double *Y, double ***Z, double ***wb,
                   const int nodes[layers], char funcs[layers+1][30])
 {
@@ -27,8 +27,8 @@ void cpu_gd_delta(double **deltas,
   //////////////////////////////////////////////////////////////////
   
   for (l = 0; l < layers; l++) {
-    help_1[l] = malloc((int)rows * nodes[l] * sizeof(double));
-    help_2[l] = malloc((int)rows * nodes[l] * sizeof(double));
+    help_1[l] = malloc(rows * nodes[l] * sizeof(double));
+    help_2[l] = malloc(rows * nodes[l] * sizeof(double));
   }
   
   // Last layer
@@ -37,22 +37,20 @@ void cpu_gd_delta(double **deltas,
       i = for_helper - 1;
       do {
         deltas[layers][i] = Z[1][layers][i] - Y[i];
-        i--;
-      } while (i >= 0);
+      } while (--i >= 0);
       break;
     default:
       gradient(deltas[layers], Z[0][layers], for_helper, funcs[layers]);
       i = for_helper - 1;
       do {
         deltas[layers][i] = (Z[1][layers][i] - Y[i]) * deltas[layers][i];
-        i--;
-      } while (i >= 0);
+      } while (--i >= 0);
       break;
   }
   
   // Before last
   l = layers - 1;
-  for_helper = (int)rows * nodes[l];
+  for_helper = rows * nodes[l];
   
   gradient(help_1[l], Z[0][l], for_helper, funcs[l]);
   
@@ -70,8 +68,7 @@ void cpu_gd_delta(double **deltas,
   i = for_helper - 1;
   do {
     deltas[l][i] = help_1[l][i] * help_2[l][i];
-    i--;
-  } while (i >= 0);
+  } while (--i >= 0);
   
   switch (layers == 1) {
     case 1:
@@ -86,7 +83,7 @@ void cpu_gd_delta(double **deltas,
       // All other layers
       l = layers - 2;
       do {
-        for_helper = (int)rows * nodes[l];
+        for_helper = rows * nodes[l];
         
         gradient(help_1[l], Z[0][l], for_helper, funcs[l]);
         
@@ -104,10 +101,8 @@ void cpu_gd_delta(double **deltas,
         i = for_helper - 1;
         do {
           deltas[l][i] = help_1[l][i] * help_2[l][i];
-          i--;
-        } while (i >= 0);
-        l--;
-      } while (l >= 0);
+        } while (--i >= 0);
+      } while (--l >= 0);
       for (l = 0; l < layers; l++) {
         free(help_2[l]);
         free(help_1[l]);

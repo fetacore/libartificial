@@ -4,7 +4,7 @@
 #include "../headers/utils.h"
 #include "../headers/training_cpu.h"
 
-double ***cpu_feedforward(const size_t rows, const size_t columns_Y, const size_t columns_X, const int layers,
+double ***cpu_feedforward(const int rows, const int columns_Y, const int columns_X, const int layers,
                           double *X, double ***wb,
                           const int nodes[layers], char funcs[layers+1][30])
 {

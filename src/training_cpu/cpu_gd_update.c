@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cblas.h>
-#include <pthread.h>
+// #include <pthread.h>
 
 #include "../headers/utils.h"
 #include "../headers/training_cpu.h"
@@ -23,9 +23,9 @@ struct cpu_batch_struct {
   double *Z_1;
   double *Z_batch_0;
   double *Z_batch_1;
-  size_t b;
-  size_t cols;
-  size_t batch;
+  int b;
+  int cols;
+  int batch;
 };
 
 static void *threaded_batch(void *arguments)
@@ -38,7 +38,7 @@ static void *threaded_batch(void *arguments)
       args -> Z_batch_1[r * args -> cols + j] = args -> Z_1[(r + args -> b) * args -> cols + j];
     }
   }
-  pthread_exit(NULL);
+//   pthread_exit(NULL);
 }
 
 // pthread requires struct for multiple arguments
@@ -49,9 +49,9 @@ struct cpu_update_struct {
   double *wb_0;
   double *wb_1;
   double *delta_sum;
-  size_t m;
-  size_t n;
-  size_t k;
+  int m;
+  int n;
+  int k;
   double correction;
 };
 
@@ -76,17 +76,16 @@ static void *threaded_update(void *arguments)
   
   do {
     args -> wb_0[i] -= args -> grad_w[i];
-    i--;
-  } while (i >= 0);
-  
-  do {
     args -> wb_1[j] -= args -> correction * args -> delta_sum[j];
-    j--;
-  } while (j >= 0);
-  pthread_exit(NULL);
+    if (--j < 0) {
+      j = args -> n - 1;
+    }
+  } while (--i >= 0);
+  
+//   pthread_exit(NULL);
 }
 
-void cpu_gd_update(const size_t rows, const size_t columns_Y, const size_t columns_X,
+void cpu_gd_update(const int rows, const int columns_Y, const int columns_X,
                    const int batch, const int layers, const int nodes[layers],
                    double *Y, double *X, double ***Z, double ***wb,
                    char funcs[layers + 1][30], const double learning_rate, const int epochs)
@@ -99,7 +98,7 @@ void cpu_gd_update(const size_t rows, const size_t columns_Y, const size_t colum
     
   // Multiplication in threads
   //   openblas_set_num_threads(1);
-  pthread_t thread[layers + 1];
+//   pthread_t thread[layers + 1];
   // To pass values to pthread
   struct cpu_update_struct args;
   struct cpu_batch_struct bargs;
@@ -107,7 +106,7 @@ void cpu_gd_update(const size_t rows, const size_t columns_Y, const size_t colum
   // In case of mini-batching or stochastic
   // b for batch
   // r helper for batch rows
-  int b, r, r_over_b = (int)rows/batch;
+  int b, r, r_over_b = rows/batch;
   
   double loss = 0.0;
   
@@ -126,12 +125,12 @@ void cpu_gd_update(const size_t rows, const size_t columns_Y, const size_t colum
   for (l = 0; l < layers + 1; l++) {
     if (l == 0) {
       for_helper_batch = batch * nodes[l];
-      for_helper_w = (int)columns_X * nodes[l];
+      for_helper_w = columns_X * nodes[l];
       stopper = nodes[l];
     } else if (l == layers) {
-      for_helper_batch = batch * (int)columns_Y;
-      for_helper_w = nodes[l-1] * (int)columns_Y;
-      stopper = (int)columns_Y;
+      for_helper_batch = batch * columns_Y;
+      for_helper_w = nodes[l-1] * columns_Y;
+      stopper = columns_Y;
     } else {
       for_helper_batch = batch * nodes[l];
       for_helper_w = nodes[l-1] * nodes[l];
@@ -145,7 +144,7 @@ void cpu_gd_update(const size_t rows, const size_t columns_Y, const size_t colum
   }
   
   // Big switch in case we have pure batch (do not allocate mini-batches)
-  switch (batch == (int)rows) {
+  switch (batch == rows) {
     // True
     case 1:
       printf(KGRN "Succesfully allocated space! Updating starts...\n" RESET);
@@ -178,12 +177,13 @@ void cpu_gd_update(const size_t rows, const size_t columns_Y, const size_t colum
             args.n = columns_Y;
             args.X = Z[1][l-1];
           }
-          pthread_create(&thread[l], NULL, &threaded_update, (void *)&args);          
+//           pthread_create(&thread[l], NULL, &threaded_update, (void *)&args);
+          threaded_update((void *)&args);
         }
         
-        for (l = 0; l < layers + 1; l++) {
-          pthread_join(thread[l], NULL);
-        }
+//         for (l = 0; l < layers + 1; l++) {
+//           pthread_join(thread[l], NULL);
+//         }
         
         // Update Zs with the new wb's
         cpu_feedforward_update(rows, columns_Y, columns_X, layers, Z, X, wb, nodes, funcs);
@@ -213,21 +213,21 @@ void cpu_gd_update(const size_t rows, const size_t columns_Y, const size_t colum
         double **Y_batch = malloc(r_over_b * sizeof(double *));
         
         for (i = 0; i < r_over_b; i++) {
-          X_batch[i] = malloc(batch * (int)columns_X * sizeof(double));
-          Y_batch[i] = malloc(batch * (int)columns_Y * sizeof(double));
+          X_batch[i] = malloc(batch * columns_X * sizeof(double));
+          Y_batch[i] = malloc(batch * columns_Y * sizeof(double));
         }
         
         i = 0;
         // Fill X_batch, Y_batch
-        for (b = 0; b < (int)rows; b+=batch) {
+        for (b = 0; b < rows; b+=batch) {
           for (r = 0; r < batch; r++) {
-            for (j = 0; j < (int)columns_X; j++) {
-              X_batch[i][r * (int)columns_X + j] = X[(r + b) * (int)columns_X + j];
+            for (j = 0; j < columns_X; j++) {
+              X_batch[i][r * columns_X + j] = X[(r + b) * columns_X + j];
             }
           }
           for (r = 0; r < batch; r++) {
-            for (j = 0; j < (int)columns_Y; j++) {
-              Y_batch[i][r * (int)columns_Y + j] = Y[(r + b) * (int)columns_Y + j];
+            for (j = 0; j < columns_Y; j++) {
+              Y_batch[i][r * columns_Y + j] = Y[(r + b) * columns_Y + j];
             }
           }
           i++;
@@ -244,8 +244,8 @@ void cpu_gd_update(const size_t rows, const size_t columns_Y, const size_t colum
           switch (l == layers) {
             // Last layer
             case 1:
-              Z_batch[0][l] = malloc(batch * (int)columns_Y * sizeof(double));
-              Z_batch[1][l] = malloc(batch * (int)columns_Y * sizeof(double));
+              Z_batch[0][l] = malloc(batch * columns_Y * sizeof(double));
+              Z_batch[1][l] = malloc(batch * columns_Y * sizeof(double));
               continue;
             default:
               Z_batch[0][l] = malloc(batch * nodes[l] * sizeof(double));
@@ -258,7 +258,7 @@ void cpu_gd_update(const size_t rows, const size_t columns_Y, const size_t colum
         
         do {
           i = 0;
-          for (b = 0; b < (int)rows; b+=batch) {
+          for (b = 0; b < rows; b+=batch) {
             if (b == 0) {
               printf("\nBatch\t#%d/%d\n", i + 1, r_over_b);
             } else {
@@ -278,12 +278,13 @@ void cpu_gd_update(const size_t rows, const size_t columns_Y, const size_t colum
               } else {
                 bargs.cols = nodes[l];
               }
-              pthread_create(&thread[l], NULL, &threaded_batch, (void *)&bargs);
+//               pthread_create(&thread[l], NULL, &threaded_batch, (void *)&bargs);
+              threaded_batch((void *)&bargs);
             }
             
-            for (l = 0; l < layers + 1; l++) {
-              pthread_join(thread[l], NULL);
-            }
+//             for (l = 0; l < layers + 1; l++) {
+//               pthread_join(thread[l], NULL);
+//             }
             
             // Fill the deltas
             cpu_gd_delta(deltas, batch, columns_Y, layers, Y_batch[i], Z_batch, wb, nodes, funcs);
@@ -310,12 +311,13 @@ void cpu_gd_update(const size_t rows, const size_t columns_Y, const size_t colum
                 args.n = columns_Y;
                 args.X = Z_batch[1][l-1];
               }
-              pthread_create(&thread[l], NULL, &threaded_update, (void *)&args);
+//               pthread_create(&thread[l], NULL, &threaded_update, (void *)&args);
+              threaded_update((void *)&args);
             }
             
-            for (l = 0; l < layers + 1; l++) {
-              pthread_join(thread[l], NULL);
-            }
+//             for (l = 0; l < layers + 1; l++) {
+//               pthread_join(thread[l], NULL);
+//             }
             
             // Do an update of Z's with the new wb's
             cpu_feedforward_update(rows, columns_Y, columns_X, layers, Z, X, wb, nodes, funcs);
@@ -328,7 +330,7 @@ void cpu_gd_update(const size_t rows, const size_t columns_Y, const size_t colum
           if (loss != loss) {
             printf(KRED "\nWe got NaN values at epoch = %d, aborting...\n" RESET, epochs - e);
             // Free before quitting
-            for (i = 0; i < (int)rows/batch; i++) {
+            for (i = 0; i < rows/batch; i++) {
               free(X_batch[i]);
               free(Y_batch[i]);
             }

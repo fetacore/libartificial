@@ -13,7 +13,7 @@
 
 double ***init_wb(const double variance, const int layers,
                   const int nodes[layers], char funcs[layers+1][30],
-                  const size_t columns_Y, const size_t columns_X)
+                  const int columns_Y, const int columns_X)
 {
   // l layers
   // i rows
@@ -102,7 +102,7 @@ double ***init_wb(const double variance, const int layers,
           
           for (i = 0; i < multiplication; i++) {
             wb[0][l][i] = correction * rand_normal(0.0, variance);
-            switch (i < (int)columns_Y) {
+            switch (i < columns_Y) {
               case 1:
                 wb[1][l][i] = 0.0;
                 break;
