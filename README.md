@@ -2,7 +2,12 @@
 
 This is a small pure C shared library for arbitrarily deep neural networks. It is my first attempt to write a scientific project in C but the speed is already outstanding. I made this library in order to assist me with my doctoral research.
 
-It is CPU ([OpenBLAS](https://github.com/xianyi/OpenBLAS)) and GPU ([CLBlast](https://github.com/CNugteren/CLBlast)) friendly (soon with support for cuBLAS if I get my hands on an NVIDIA GPU). I have plans to extend it for CNNs and RNNs. The bindings for Python and JS (with webassembly) will be ready soon.
+It is CPU ([OpenBLAS](https://github.com/xianyi/OpenBLAS)) and GPU ([CLBlast](https://github.com/CNugteren/CLBlast)) friendly (soon with support for cuBLAS if I get my hands on an NVIDIA GPU). I have plans to extend it for CNNs and RNNs.
+
+## Bindings
+
+- Python: [python-libartificial](https://github.com/fetacore/python-libartificial)
+- Javascript (WASM): tba
 
 The feedforward procedure does not have a hardcoded depth (it can have as many layers as you want).
 
@@ -14,7 +19,7 @@ I will try to compile the library with Visual Studio and get back to you on how 
 In order to get libartificial you have to do the following (assuming working installation of git)
 
 ```
-git clone https://github.com/jroukis/libartificial.git
+git clone https://github.com/fetacore/libartificial.git
 cd libartificial
 rm -rf .git
 ```
@@ -23,6 +28,18 @@ rm -rf .git
 
 In order to compile the library for CPU you need to install [OpenBLAS](https://github.com/xianyi/OpenBLAS).
 In order to compile the library for GPU you need to install [CLBlast](https://github.com/CNugteren/CLBlast).
+
+## Specifics for OpenBLAS
+
+Since libartificial is multithreaded, we need to compile OpenBLAS with USE_OPENMP=1. The library assumes that OpenBLAS is in the libartificial folder under the folder name "openblas".
+You do the following:
+
+```
+git clone https://github.com/xianyi/OpenBLAS.git openblas
+cd openblas && make USE_OPENMP=1
+cd ../
+
+```
 
 ## Specifics for CLBlast
 

@@ -3,77 +3,87 @@
 #include <math.h>
 #include <time.h>
 
+// For random_normal
 #include "../src/headers/utils.h"
-#include "../src/headers/training_cpu.h"
-#include "../src/headers/neurons_cpu.h"
+
+#include "../include/cpu.h"
 
 int main(void)
 {
-  int i;
+  int i, j;
   
   // The model
   ///////////////////////////////////////////////////////////////////////////
-  const size_t columns_X = 3;
-  const size_t columns_Y = 1;
-  const size_t rows = 1024;
+  const int columns_X = 3;
+  const int columns_Y = 1;
+  const int rows = 1024;
   
-  double *X = calloc(rows * columns_X, sizeof(double));
+  double *X = malloc(rows * columns_X * sizeof(double));
   
   srand(time(NULL));
   
-  for(i = 0; i < (rows * columns_X); i++) {
-    X[i] = rand_normal(30.0, 2.0);
+  // First column is a column of ones
+  for (i = 0; i < rows; i++) {
+    for (j = 0; j < columns_X; j++) {
+      if (j == 0) {
+        X[i * columns_X + j] = 1;
+      } else if (j == 1) {
+        X[i * columns_X + j] = rand_normal(20.0, 5.0);
+      } else {
+        X[i * columns_X + j] = rand_normal(3.0, 10.0);
+      }
+    }
   }
   
   double *Y = malloc(rows * columns_Y * sizeof(double));
   for (i = 0; i < rows; i++) {
-    Y[i] = 8 * pow(X[i * columns_X], 2) - 5 * sqrt(X[i * columns_X + 1]) - sin(X[i * columns_X + 2]) + rand_normal(0,1);
+    Y[i] = 8 * pow(X[i * columns_X], 2) + 5 * sqrt(X[i * columns_X + 1]) - sin(X[i * columns_X + 2]) + rand_normal(0,1);
   }
   ///////////////////////////////////////////////////////////////////////////
   
   // Hyperparameters
   ///////////////////////////////////////////////////////////////////////////
   const int batch = 256; // Divisor of 1024
-  const double w_variance = 0.01; // For the weight initialization
-  const double learning_rate = 0.0000001;
-  const int epochs = 6;
+  const double w_variance = 1; // For the weight initialization
+  const double learning_rate = 0.000001;
+  const int epochs = 500;
   
-  const int layers = 7;
-  const int nodes[7] = {3200, 2309, 397, 540, 408, 390, 480};
-  char funcs[7 + 1][30] = {
-    "logistic",
-    "relu",
-    "tanh",
-    "lrelu",
+//   const int layers = 7;
+//   const int nodes[7] = {308, 293, 392, 563, 445, 392, 481};
+//   char funcs[7 + 1][30] = {
+//     "logistic",
+//     "tanh",
+//     "gauss",
+//     "bent",
+//     "bent",
+//     "softmax",
+//     "gauss",
+//     "linear" // Regression and not classification (if classification something other than linear)
+//   };
+//   
+//   const int layers = 3;
+//   const int nodes[3] = {6200, 99, 39};
+//   char funcs[4][30] = {
+//     "logistic",
+//     "logistic",
+//     "logistic",
+//     "linear" // Regression and not classification (if classification something other than linear)
+//   };
+//   
+//   const int layers = 2;
+//   const int nodes[2] = {602, 39};
+//   char funcs[3][30] = {
+//     "softplus",
+//     "gauss",
+//     "linear" // Regression and not classification (if classification something other than linear)
+//   };
+  
+  const int layers = 1;
+  const int nodes[1] = {200};
+  char funcs[2][30] = {
     "gauss",
-    "softmax",
-    "tanh",
     "linear" // Regression and not classification (if classification something other than linear)
   };
-  
-//   	const int layers = 3;
-//   	const int nodes[3] = {6200, 99, 39};
-//   	char funcs[4][30] = {
-//   		"logistic",
-//   		"logistic",
-//   		"logistic",
-//   		"linear" // Regression and not classification (if classification something other than linear)
-//   	};
-  
-//   	const int layers = 2;
-//   	const int nodes[2] = {602, 3};
-//   	char funcs[3][30] = {
-//   		"logistic",
-//   		"gauss",
-//   		"linear" // Regression and not classification (if classification something other than linear)
-//   	};
-  
-//   	const int layers = 1;
-//   	const int nodes[1] = {2009};
-//   	char funcs[2][30] = {
-//   		"gauss",
-//   		"linear" // Regression and not classification (if classification something other than linear)
-//   	};
   ////////////////////////////////////////////////////////////////////////////
   
   // The procedure
@@ -83,36 +93,30 @@ int main(void)
   normalize(X, rows, columns_X);
   
   // Then we randomize the inputs
-  randomize(X, rows, columns_X);
+//   randomize(X, rows, columns_X);
   
   // We initialize weights and biases at every layer (if we do not already have them)
   // wb[0] the weights
   // wb[1] the biases
   // wb[0][l][i * columns_X + j] weights at layer l=0,...,layers, i'th row j'th column
   // wb[1][l][j] biases at layer l=0,...,layers always 1 row and j'th column
-  double ***wb = init_wb(w_variance, layers, nodes, funcs, columns_Y, columns_X);
+  double **weights = init_w(w_variance, layers, nodes, funcs, columns_Y, columns_X);
   
   // If you have already saved weights and biases
-//   double ***wb = load_wb(layers, nodes, columns_Y, columns_X);
+//   double **weights = load_w(layers, nodes, columns_Y, columns_X);
   
-  // The outputs from neurons
-  // We care about Z[1][layers][i * columns + j] which is the final prediction
-  // The rest are used for the updating
-  double ***Z = cpu_feedforward(rows, columns_Y, columns_X, layers, X, wb, nodes, funcs);
+  // All the updating in one function (manipulates wb and saves it by default)
+  cpu_gd_train(rows, columns_Y, columns_X, batch, layers, nodes, Y, X, weights, funcs, learning_rate, epochs);
   
-  // All the updating in one function (manipulates wb)
-  cpu_gd_update(rows, columns_Y, columns_X, batch, layers, nodes, Y, X, Z, wb, funcs, learning_rate, epochs);
+  double *Z = cpu_feedforward_predict(rows, columns_Y, columns_X, layers, X, weights, nodes, funcs);
   
-//   save_wb(wb, layers, nodes, columns_Y, columns_X);
-
   ////////////////////////////////////////////////////////////
   // Freeing stuff
   ////////////////////////////////////////////////////////////
-  delete_Z(layers, Z);
-  delete_wb(layers, wb);
-  
+  delete_w(layers, weights);
   free(X);
   free(Y);
+  free(Z);
   ////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////
   return 0;

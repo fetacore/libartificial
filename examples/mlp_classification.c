@@ -6,7 +6,7 @@
 // For random_normal
 #include "../src/headers/utils.h"
 
-#include "../include/gpu.h"
+#include "../include/cpu.h"
 
 int main(void)
 {
@@ -15,10 +15,11 @@ int main(void)
   // The model
   ///////////////////////////////////////////////////////////////////////////
   const int columns_X = 3;
-  const int columns_Y = 1;
-  const int rows = 1024;
+  const int columns_Y = 2;
+  const int rows = 2;
   
   double *X = malloc(rows * columns_X * sizeof(double));
+  int random_prob_one;
   
   srand(time(NULL));
   
@@ -37,16 +38,23 @@ int main(void)
   
   double *Y = malloc(rows * columns_Y * sizeof(double));
   for (i = 0; i < rows; i++) {
-    Y[i] = 8 * pow(X[i * columns_X], 2) + 5 * sqrt(X[i * columns_X + 1]) - sin(X[i * columns_X + 2]) + rand_normal(0,1);
+    random_prob_one = rand() % ((columns_Y - 1) + 1 - 0) + 0; // range(0, labels)
+    for (j = 0; j < columns_Y; j++) {
+      if (j == random_prob_one) {
+        Y[i * columns_Y + j] = 1.0;
+      } else {
+        Y[i * columns_Y + j] = 0.0;
+      }
+    }
   }
   ///////////////////////////////////////////////////////////////////////////
   
   // Hyperparameters
   ///////////////////////////////////////////////////////////////////////////
-  const int batch = 256; // Divisor of 1024
+  const int batch = 1; // Divisor of 1024
   const double w_variance = 1; // For the weight initialization
-  const double learning_rate = 0.000001;
-  const int epochs = 500;
+  const double learning_rate = 0.001;
+  const int epochs = 50000;
   
   //   const int layers = 7;
   //   const int nodes[7] = {308, 293, 392, 563, 445, 392, 481};
@@ -70,19 +78,19 @@ int main(void)
   //     "linear" // Regression and not classification (if classification something other than linear)
   //   };
   //   
-  //   const int layers = 2;
-  //   const int nodes[2] = {602, 39};
-  //   char funcs[3][30] = {
-  //     "softplus",
-  //     "gauss",
-  //     "linear" // Regression and not classification (if classification something other than linear)
-  //   };
+//     const int layers = 2;
+//     const int nodes[2] = {302, 369};
+//     char funcs[3][30] = {
+//       "gauss",
+//       "logistic",
+//       "softmax" // Regression and not classification (if classification something other than linear)
+//     };
   
   const int layers = 1;
-  const int nodes[1] = {200};
+  const int nodes[1] = {2};
   char funcs[2][30] = {
-    "gauss",
-    "linear" // Regression and not classification (if classification something other than linear)
+    "logistic",
+    "softmax"
   };
   ////////////////////////////////////////////////////////////////////////////
   
@@ -106,9 +114,17 @@ int main(void)
   //   double **weights = load_w(layers, nodes, columns_Y, columns_X);
   
   // All the updating in one function (manipulates wb and saves it by default)
-  gpu_gd_train(rows, columns_Y, columns_X, batch, layers, nodes, Y, X, weights, funcs, learning_rate, epochs);
+  cpu_gd_train(rows, columns_Y, columns_X, batch, layers, nodes, Y, X, weights, funcs, learning_rate, epochs);
   
-  double *Z = gpu_feedforward_predict(rows, columns_Y, columns_X, layers, X, weights, nodes, funcs);
+  double *Z = cpu_feedforward_predict(rows, columns_Y, columns_X, layers, X, weights, nodes, funcs);
+  
+  for (i = 0; i < rows; i++) {
+    printf("\n");
+    for (j = 0; j < columns_Y; j++) {
+      printf("%f\t", Z[i * columns_Y + j]);
+    }
+    printf("\n");
+  }
   
   ////////////////////////////////////////////////////////////
   // Freeing stuff

@@ -1,207 +1,158 @@
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 
-void activate(double *X_activated, double *X, const int threshold, char *function) {
+void activate(double *restrict X_activated, const double *restrict X,
+              const int *restrict rows, const int *restrict cols, const int *restrict function) {
   
-  int i = threshold - 1;
-  double e_X = 0;
+  int i = (*rows) * (*cols) - 1;
   
-  switch (strcmp(function, "relu")) {
+  switch ((*function)) {
+    
+    // Relu
     case 0:
       do {
         switch (X[i] < 0.0) {
           case 1:
-            X_activated[i--] = 0.0;
+            X_activated[i] = 0.0;
             continue;
           default:
             X_activated[i] = X[i];
-            i--;
             continue;
         }
-      } while (i >= 0);
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  switch (strcmp(function, "logistic")) {
-    case 0:
+    
+    // Logistic
+    case 1:
       do {
-        e_X = exp(-X[i]);
-        X_activated[i--] = 1/(1 + e_X);
-      } while (i >= 0);
+        X_activated[i] = 1/(1 + exp(-X[i]));
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  switch (strcmp(function, "linear")) {
-    case 0:
-      do {
-        X_activated[i] = X[i];
-        i--;
-      } while (i >= 0);
+    
+    // Linear
+    case 2:
+      memcpy(X_activated, X, (i + 1) * sizeof(double));
       return;
-    default:
-      break;
-  }
-  
-  switch (strcmp(function, "tanh")) {
-    case 0:
+    
+    // Tanh
+    case 3:
       do {
         X_activated[i] = tanh(X[i]);
-        i--;
-      } while (i >= 0);
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  switch (strcmp(function, "softmax")) {
-    case 0:
+    
+    // Softmax
+    case 4: {
+      double *expos = malloc((*cols) * sizeof(double));
+      double e_X;
+      int row = (*rows) - 1, col;
       do {
-        e_X += exp(X[i--]);
-      } while (i >= 0);
-      
-      i = threshold - 1;
-      
-      do {
-        X_activated[i] = exp(X[i])/e_X;
-        i--;
-      } while (i >= 0);
+        e_X = 0.0;
+        col = (*cols) - 1;
+        do {
+          expos[col] = exp(X[row * (*cols) + col]);
+          e_X += expos[col];
+        } while (--col >= 0);
+        col = (*cols) - 1;
+        do {
+          X_activated[row * (*cols) + col] = expos[col]/e_X;
+        } while (--col >= 0);
+      } while (--row >= 0);
+      free(expos);
       return;
-    default:
-      break;
-  }
-  
-  // Leaky relu
-  switch (strcmp(function, "lrelu")) {
-    case 0:
+    }
+    
+    // Lrelu
+    case 5:
       do {
         switch (X[i] < 0.0) {
           case 1:
             X_activated[i] = 0.01 * X[i];
-            i--;
             continue;
           default:
             X_activated[i] = X[i];
-            i--;
             continue;
         }
-      } while (i >= 0);
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  switch (strcmp(function, "softplus")) {
-    case 0:
+    
+    // Softplus
+    case 6:
       do {
-        e_X = exp(X[i]);
-        X_activated[i--] = log(1 + e_X);
-      } while (i >= 0);
+        X_activated[i] = log(1 + exp(X[i]));
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  switch (strcmp(function, "softsign")) {
-    case 0:
+    
+    // Softsign
+    case 7:
       do {
         X_activated[i] = X[i]/(1 + fabs(X[i]));
-        i--;
-      } while (i >= 0);
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  switch (strcmp(function, "arctan")) {
-    case 0:
+    
+    // Arctan
+    case 8:
       do {
         X_activated[i] = atan(X[i]);
-        i--;
-      } while (i >= 0);
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  //Inverse square root with a = 1
-  switch (strcmp(function, "isru")) {
-    case 0:
+    
+    // Isru
+    case 9:
       do {
-        X_activated[i] = X[i]/sqrt(1 + pow(X[i], 2));
-        i--;
-      } while (i >= 0);
+        X_activated[i] = X[i]/sqrt(1 + X[i] * X[i]);
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  //Inverse sqrt linear unit \w a=1
-  switch (strcmp(function, "isrlu")) {
-    case 0:
+    
+    // Isrlu
+    case 10:
       do {
         switch (X[i] < 0.0) {
           case 1:
-            X_activated[i] = X[i]/sqrt(1 + pow(X[i], 2));
-            i--;
+            X_activated[i] = X[i]/sqrt(1 + X[i] * X[i]);
             continue;
           default:
             X_activated[i] = X[i];
-            i--;
             continue;
         }
-      } while (i >= 0);
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  switch (strcmp(function, "bent")) {
-    case 0:
+    
+    // Bent
+    case 11:
       do {
-        X_activated[i] = (sqrt(pow(X[i], 2) + 1.0) - 1.0)/2.0 + X[i];
-        i--;
-      } while (i >= 0);
+        X_activated[i] = (sqrt(X[i] * X[i] + 1.0) - 1.0)/2.0 + X[i];
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  switch (strcmp(function, "sinus")) {
-    case 0:
+    
+    // Sinus
+    case 12:
       do {
         X_activated[i] = sin(X[i]);
-        i--;
-      } while (i >= 0);
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  switch (strcmp(function, "sinusc")) {
-    case 0:
+    
+    // Sinusc
+    case 13:
       do {
         switch (X[i] == 0.0) {
           case 1:
-            X_activated[i--] = 1.0;
+            X_activated[i] = 1.0;
             continue;
           default:
             X_activated[i] = sin(X[i])/X[i];
-            i--;
             continue;
         }
-      } while (i >= 0);
+      } while (--i >= 0);
       return;
+    
+    // Gauss
     default:
-      break;
+      do {
+        X_activated[i] = exp(-(X[i] * X[i]));
+      } while (--i >= 0);
+      return;
   }
-  
-  // Gaussian if nothing else
-  do {
-    X_activated[i] = exp(-pow(X[i], 2));
-    i--;
-  } while (i >= 0);
 }

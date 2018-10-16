@@ -1,217 +1,197 @@
 #include <string.h>
+#include <stdlib.h>
 #include <math.h>
 
-void gradient(double *X_graded, double *X, const int threshold, char *function) {
+void gradient(double *restrict X_graded, const double *restrict X,
+              const int *restrict rows, const int *restrict cols, const int *restrict function) {
   
-  int i = threshold - 1;
-  double e_X = 0.0, e_mX = 0.0, y = 0.0;
+  int i = (*rows) * (*cols) - 1;
   
-  switch (strcmp(function, "relu")) {
-    case 0:
+  switch ((*function)) {
+    
+    // Relu
+    case 0: {
       do {
         switch (X[i] < 0.0) {
           case 1:
-            X_graded[i--] = 0.0;
+            X_graded[i] = 0.0;
             continue;
           default:
-            X_graded[i--] = 1.0;
+            X_graded[i] = 1.0;
             continue;
         }
-      } while (i >= 0);
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  switch (strcmp(function, "logistic")) {
-    case 0:
+    }
+    
+    // Logistic
+    case 1: {
+      double y;
       do {
-        e_mX = exp(-X[i]);
-        y = 1/(1 + e_mX);
-        X_graded[i--] = y * (1 - y);
-      } while (i >= 0);
+        y = 1/(1 + exp(-X[i]));
+        X_graded[i] = y * (1 - y);
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  switch (strcmp(function, "linear")) {
-    case 0:
-      do {
-        X_graded[i--] = 1.0;
-      } while (i >= 0);
+    }
+    
+    // Linear
+    case 2: {
+      memset(X_graded, 1.0, (i + 1) * sizeof(double));
       return;
-    default:
-      break;
-  }
-  
-  switch (strcmp(function, "tanh")) {
-    case 0:
+    }
+    
+    // Tanh
+    case 3: {
+      double e_X, e_mX, y;
       do {
         e_X = exp(X[i]);
         e_mX = exp(-X[i]);
         y = (e_X - e_mX)/(e_X + e_mX);
-        X_graded[i--] = 1 - y * y;
-      } while (i >= 0);
+        X_graded[i] = 1 - y * y;
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  
-  switch (strcmp(function, "softmax")) {
-    case 0:
+    }
+    
+    // Softmax
+    case 4: {
+      double *expos = malloc((*cols) * sizeof(double));
+      int row = (*rows) - 1, col;
+      double e_X, e_mX;
       do {
-        // Abuse of notation (sum of all exp(X_i))
-        e_X += exp(X[i--]);
-      } while (i >= 0);
-      
-      i = threshold - 1;
-      
-      do {
-        // Abuse again
-        e_mX = exp(X[i])/e_X;
-        X_graded[i--] = e_mX * (1 - e_mX);
-      } while (i >= 0);
+        e_X = 0.0;
+        col = (*cols) - 1;
+        do {
+          expos[col] = exp(X[row * (*cols) + col]);
+          e_X += expos[col];
+        } while (--col >= 0);
+        col = (*cols) - 1;
+        do {
+          e_mX = expos[col]/e_X;
+          switch (row == col) {
+            case 1:
+              X_graded[row * (*cols) + col] = e_mX * (1 - e_mX);
+              break;
+            default:
+              X_graded[row * (*cols) + col] = - e_mX * e_mX;
+              break;
+          }
+        } while (--col >= 0);
+      } while (--row >= 0);
+      free(expos);
       return;
-    default:
-      break;
-  }
-  
-  // Leaky relu
-  switch (strcmp(function, "lrelu")) {
-    case 0:
+    }
+    
+    // Lrelu
+    case 5: {
       do {
         switch (X[i] < 0.0) {
           case 1:
-            X_graded[i--] = 0.01;
+            X_graded[i] = 0.01;
             continue;
           default:
-            X_graded[i--] = 1.0;
+            X_graded[i] = 1.0;
             continue;
         }
-      } while (i >= 0);
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  switch (strcmp(function, "softplus")) {
-    case 0:
+    }
+    
+    // Softplus
+    case 6: {
       do {
-        e_mX = exp(-X[i]);
-        X_graded[i--] = 1/(1 + e_mX);
-      } while (i >= 0);
+        X_graded[i] = 1/(1 + exp(-X[i]));
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  switch (strcmp(function, "softsign")) {
-    case 0:
+    }
+    
+    // Softsign
+    case 7: {
+      double y;
       do {
         // abuse of notation
-        e_X = fabs(X[i]);
-        y = 1 + e_X;
-        X_graded[i--] = 1/(y * y);
-      } while (i >= 0);
+        y = 1 + fabs(X[i]);
+        X_graded[i] = 1/(y * y);
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  switch (strcmp(function, "arctan")) {
-    case 0:
+    }
+    
+    // Arctan
+    case 8: {
       do {
-        // Abuse of notation
-        e_X = X[i] * X[i];
-        X_graded[i--] = 1/(e_X + 1);
-      } while (i >= 0);
+        X_graded[i] = 1/(X[i] * X[i] + 1);
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  //Inverse square root with a = 1
-  switch (strcmp(function, "isru")) {
-    case 0:
+    }
+    
+    // Isru
+    case 9: {
+      double sq, y;
       do {
-        y = sqrt(1 + X[i] * X[i]);
-        y = X[i]/y;
-        X_graded[i--] = pow(y, 3);
-      } while (i >= 0);
+        sq = sqrt(1 + X[i] * X[i]);
+        y = X[i]/sq;
+        X_graded[i] = y * y * y;
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  //Inverse sqrt linear unit \w a=1
-  switch (strcmp(function, "isrlu")) {
-    case 0:
+    }
+    
+    // Isrlu
+    case 10: {
+      double sq, y;
       do {
         switch (X[i] < 0.0) {
           case 1:
-            y = sqrt(1 + X[i] * X[i]);
-            y = X[i]/y;
-            X_graded[i--] = pow(y, 3);
+            sq = sqrt(1 + X[i] * X[i]);
+            y = X[i]/sq;
+            X_graded[i] = y * y * y;
             continue;
           default:
-            X_graded[i--] = 1.0;
+            X_graded[i] = 1.0;
             continue;
         }
-      } while (i >= 0);
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  switch (strcmp(function, "bent")) {
-    case 0:
+    }
+    
+    // Bent
+    case 11: {
+      double y, add;
       do {
-        // abuse of notation
-        e_X = X[i] + 1;
-        y = sqrt(e_X * e_X);
+        add = X[i] + 1;
+        y = sqrt(add * add);
         X_graded[i] = X[i]/(2 * y) + 1;
-        i--;
-      } while (i >= 0);
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  switch (strcmp(function, "sinus")) {
-    case 0:
+    }
+    
+    // Sinus
+    case 12: {
       do {
-        // Abuse of notation
-        e_X = cos(X[i]);
-        X_graded[i--] = e_X;
-      } while (i >= 0);
+        X_graded[i] = cos(X[i]);
+      } while (--i >= 0);
       return;
-    default:
-      break;
-  }
-  
-  switch (strcmp(function, "sinusc")) {
-    case 0:
+    }
+    
+    // Sinusc
+    case 13: {
       do {
         switch (X[i] == 0.0) {
           case 1:
-            X_graded[i--] = 0.0;
+            X_graded[i] = 0.0;
             continue;
           default:
             X_graded[i] = cos(X[i])/X[i] - sin(X[i])/(X[i] * X[i]);
-            i--;
             continue;
         }
-      } while (i >= 0);
+      } while (--i >= 0);
       return;
-    default:
-      break;
+    }
+    
+    // Gauss
+    default: {
+      do {
+        X_graded[i] = -2.0 * X[i] * exp(-(X[i] * X[i]));
+      } while (--i >= 0);
+      return;
+    }
   }
-  
-  // Gaussian if all else fails
-  do {
-    X_graded[i] = -2 * X[i] * exp(-(X[i] * X[i]));
-    i--;
-  } while (i >= 0);
 }

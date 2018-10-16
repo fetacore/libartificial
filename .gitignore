@@ -2,7 +2,10 @@ examples/test1
 examples/test2
 examples/test3
 examples/test4
-examples/wb
+examples/test5
+examples/weights
+logfile
+openblas
 clblast
 libartificial.so
 libartificialgpu.so

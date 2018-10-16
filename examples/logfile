@@ -1,0 +1,158 @@
+==4545== Memcheck, a memory error detector
+==4545== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==4545== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==4545== Command: ./test3
+==4545== Parent PID: 4535
+==4545== 
+--4545-- 
+--4545-- Valgrind options:
+--4545--    --log-file=logfile
+--4545--    --leak-check=full
+--4545--    --show-leak-kinds=all
+--4545--    --track-origins=yes
+--4545--    --dsymutil=yes
+--4545--    --trace-children=yes
+--4545--    -v
+--4545-- Contents of /proc/version:
+--4545--   Linux version 4.18.0-2-amd64 (debian-kernel@lists.debian.org) (gcc version 7.3.0 (Debian 7.3.0-29)) #1 SMP Debian 4.18.10-2 (2018-10-07)
+--4545-- 
+--4545-- Arch and hwcaps: AMD64, LittleEndian, amd64-cx16-lzcnt-rdtscp-sse3-avx-avx2-bmi
+--4545-- Page sizes: currently 4096, max supported 4096
+--4545-- Valgrind library directory: /usr/lib/valgrind
+--4545-- Reading syms from /home/fetacore/Desktop/git-projects/libartificial/examples/test3
+--4545-- Reading syms from /lib/x86_64-linux-gnu/ld-2.27.so
+--4545--   Considering /usr/lib/debug/.build-id/dc/5cb16f5e644116cac64a4c3f5da4d081b81a4f.debug ..
+--4545--   .. build-id is valid
+--4545-- Reading syms from /usr/lib/valgrind/memcheck-amd64-linux
+--4545--   Considering /usr/lib/valgrind/memcheck-amd64-linux ..
+--4545--   .. CRC mismatch (computed 7680f3df wanted 92e0f93c)
+--4545--   Considering /usr/lib/debug/usr/lib/valgrind/memcheck-amd64-linux ..
+--4545--   .. CRC is valid
+--4545--    object doesn't have a dynamic symbol table
+--4545-- Scheduler: using generic scheduler lock implementation.
+--4545-- Reading suppressions file: /usr/lib/valgrind/default.supp
+==4545== embedded gdbserver: reading from /tmp/vgdb-pipe-from-vgdb-to-4545-by-fetacore-on-???
+==4545== embedded gdbserver: writing to   /tmp/vgdb-pipe-to-vgdb-from-4545-by-fetacore-on-???
+==4545== embedded gdbserver: shared mem   /tmp/vgdb-pipe-shared-mem-vgdb-4545-by-fetacore-on-???
+==4545== 
+==4545== TO CONTROL THIS PROCESS USING vgdb (which you probably
+==4545== don't want to do, unless you know exactly what you're doing,
+==4545== or are doing some strange experiment):
+==4545==   /usr/lib/valgrind/../../bin/vgdb --pid=4545 ...command...
+==4545== 
+==4545== TO DEBUG THIS PROCESS USING GDB: start GDB like this
+==4545==   /path/to/gdb ./test3
+==4545== and then give GDB the following command
+==4545==   target remote | /usr/lib/valgrind/../../bin/vgdb --pid=4545
+==4545== --pid is optional if only one valgrind process is running
+==4545== 
+--4545-- REDIR: 0x401e290 (ld-linux-x86-64.so.2:strlen) redirected to 0x58061781 (vgPlain_amd64_linux_REDIR_FOR_strlen)
+--4545-- REDIR: 0x401e070 (ld-linux-x86-64.so.2:index) redirected to 0x5806179b (vgPlain_amd64_linux_REDIR_FOR_index)
+--4545-- Reading syms from /usr/lib/valgrind/vgpreload_core-amd64-linux.so
+--4545--   Considering /usr/lib/valgrind/vgpreload_core-amd64-linux.so ..
+--4545--   .. CRC mismatch (computed 66a2a561 wanted 3789c7eb)
+--4545--   Considering /usr/lib/debug/usr/lib/valgrind/vgpreload_core-amd64-linux.so ..
+--4545--   .. CRC is valid
+--4545-- Reading syms from /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so
+--4545--   Considering /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so ..
+--4545--   .. CRC mismatch (computed 8487a070 wanted 8af30a91)
+--4545--   Considering /usr/lib/debug/usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so ..
+--4545--   .. CRC is valid
+==4545== WARNING: new redirection conflicts with existing -- ignoring it
+--4545--     old: 0x0401e290 (strlen              ) R-> (0000.0) 0x58061781 vgPlain_amd64_linux_REDIR_FOR_strlen
+--4545--     new: 0x0401e290 (strlen              ) R-> (2007.0) 0x04838a60 strlen
+--4545-- REDIR: 0x401aab0 (ld-linux-x86-64.so.2:strcmp) redirected to 0x4839b90 (strcmp)
+--4545-- REDIR: 0x401e7d0 (ld-linux-x86-64.so.2:mempcpy) redirected to 0x483d1a0 (mempcpy)
+--4545-- Reading syms from /lib/x86_64-linux-gnu/libm-2.27.so
+--4545--   Considering /usr/lib/debug/.build-id/fa/b2857727406caccd7ab22e1729b09ccf2c3eb7.debug ..
+--4545--   .. build-id is valid
+--4545-- Reading syms from /home/fetacore/Desktop/git-projects/libartificial/openblas/libopenblas_haswellp-r0.3.4.dev.so
+--4545-- Reading syms from /home/fetacore/Desktop/git-projects/libartificial/libartificial.so
+--4545-- Reading syms from /lib/x86_64-linux-gnu/libc-2.27.so
+--4545--   Considering /usr/lib/debug/.build-id/dc/87cd1e2b171a4c51139cb4e1f2ec630e711de3.debug ..
+--4545--   .. build-id is valid
+--4545-- Reading syms from /lib/x86_64-linux-gnu/libpthread-2.27.so
+--4545--   Considering /usr/lib/debug/.build-id/c1/969b6ac0e7a64f9cd88fdce8b584ccfc16623d.debug ..
+--4545--   .. build-id is valid
+--4545-- Reading syms from /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0
+--4545--    object doesn't have a symbol table
+--4545-- Reading syms from /lib/x86_64-linux-gnu/libdl-2.27.so
+--4545--   Considering /usr/lib/debug/.build-id/b7/883b3fc771cfa5fcb452861bbb97a5b646259b.debug ..
+--4545--   .. build-id is valid
+--4545-- REDIR: 0x4e96050 (libc.so.6:memmove) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e95280 (libc.so.6:strncpy) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e96330 (libc.so.6:strcasecmp) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e94cd0 (libc.so.6:strcat) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e952b0 (libc.so.6:rindex) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e97900 (libc.so.6:rawmemchr) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e961c0 (libc.so.6:mempcpy) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e95ff0 (libc.so.6:bcmp) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e95240 (libc.so.6:strncmp) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e94d40 (libc.so.6:strcmp) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e96120 (libc.so.6:memset) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4eafb60 (libc.so.6:wcschr) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e951e0 (libc.so.6:strnlen) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e94db0 (libc.so.6:strcspn) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e96380 (libc.so.6:strncasecmp) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e94d80 (libc.so.6:strcpy) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e964c0 (libc.so.6:memcpy@@GLIBC_2.14) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e952e0 (libc.so.6:strpbrk) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e94d00 (libc.so.6:index) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e951b0 (libc.so.6:strlen) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e9c1b0 (libc.so.6:memrchr) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e963d0 (libc.so.6:strcasecmp_l) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e95fc0 (libc.so.6:memchr) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4eb0920 (libc.so.6:wcslen) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e95590 (libc.so.6:strspn) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e96300 (libc.so.6:stpncpy) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e962d0 (libc.so.6:stpcpy) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e97930 (libc.so.6:strchrnul) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4e96420 (libc.so.6:strncasecmp_l) redirected to 0x482b1c0 (_vgnU_ifunc_wrapper)
+--4545-- REDIR: 0x4f68700 (libc.so.6:__strrchr_avx2) redirected to 0x48383e0 (rindex)
+--4545-- REDIR: 0x4f688d0 (libc.so.6:__strlen_avx2) redirected to 0x48389a0 (strlen)
+--4545-- REDIR: 0x4e915c0 (libc.so.6:malloc) redirected to 0x4835750 (malloc)
+--4545-- REDIR: 0x4f68e10 (libc.so.6:__memcpy_avx_unaligned_erms) redirected to 0x483c390 (memmove)
+--4545-- REDIR: 0x4e91c50 (libc.so.6:free) redirected to 0x4836980 (free)
+--4545-- REDIR: 0x4f69290 (libc.so.6:__memset_avx2_unaligned_erms) redirected to 0x483c280 (memset)
+--4545-- REDIR: 0x4f440a0 (libc.so.6:__strcmp_ssse3) redirected to 0x4839a50 (strcmp)
+--4545-- REDIR: 0x4f68510 (libc.so.6:__strchrnul_avx2) redirected to 0x483ccd0 (strchrnul)
+--4545-- REDIR: 0x4f68df0 (libc.so.6:__mempcpy_avx_unaligned_erms) redirected to 0x483cde0 (mempcpy)
+--4545-- REDIR: 0x4f55c90 (libc.so.6:__strcpy_ssse3) redirected to 0x4838a80 (strcpy)
+--4545-- REDIR: 0x4ea54d0 (libc.so.6:__strcat_ssse3) redirected to 0x4838640 (strcat)
+--4545-- REDIR: 0x4e95a70 (libc.so.6:__GI_strstr) redirected to 0x483d410 (__strstr_sse2)
+==4545== 
+==4545== HEAP SUMMARY:
+==4545==     in use at exit: 216 bytes in 2 blocks
+==4545==   total heap usage: 81 allocs, 79 frees, 11,862,144 bytes allocated
+==4545== 
+==4545== Searching for pointers to 2 not-freed blocks
+==4545== Checked 184,936 bytes
+==4545== 
+==4545== 8 bytes in 1 blocks are still reachable in loss record 1 of 2
+==4545==    at 0x48357BF: malloc (vg_replace_malloc.c:299)
+==4545==    by 0x4FF7B48: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==4545==    by 0x5006806: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==4545==    by 0x4FF617A: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==4545==    by 0x400F0C9: call_init.part.0 (dl-init.c:72)
+==4545==    by 0x400F1D5: call_init (dl-init.c:118)
+==4545==    by 0x400F1D5: _dl_init (dl-init.c:119)
+==4545==    by 0x4001249: ??? (in /lib/x86_64-linux-gnu/ld-2.27.so)
+==4545== 
+==4545== 208 bytes in 1 blocks are still reachable in loss record 2 of 2
+==4545==    at 0x48357BF: malloc (vg_replace_malloc.c:299)
+==4545==    by 0x4FF7B48: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==4545==    by 0x5005DAA: ??? (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==4545==    by 0x4FF7F64: omp_set_num_threads (in /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0)
+==4545==    by 0x4C37388: goto_set_num_threads (in /home/fetacore/Desktop/git-projects/libartificial/openblas/libopenblas_haswellp-r0.3.4.dev.so)
+==4545==    by 0x4E04541: cpu_gd_train (in /home/fetacore/Desktop/git-projects/libartificial/libartificial.so)
+==4545==    by 0x1093EB: main (mlp_classification.c:117)
+==4545== 
+==4545== LEAK SUMMARY:
+==4545==    definitely lost: 0 bytes in 0 blocks
+==4545==    indirectly lost: 0 bytes in 0 blocks
+==4545==      possibly lost: 0 bytes in 0 blocks
+==4545==    still reachable: 216 bytes in 2 blocks
+==4545==         suppressed: 0 bytes in 0 blocks
+==4545== 
+==4545== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==4545== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
