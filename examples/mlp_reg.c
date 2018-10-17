@@ -84,7 +84,6 @@ int main(void)
     "gauss",
     "linear" // Regression and not classification (if classification something other than linear)
   };
-  ////////////////////////////////////////////////////////////////////////////
   
   // The procedure
   ////////////////////////////////////////////////////////////////////////////
@@ -95,12 +94,12 @@ int main(void)
   // Then we randomize the inputs
 //   randomize(X, rows, columns_X);
   
+  double **weights;
+  
   // We initialize weights and biases at every layer (if we do not already have them)
-  // wb[0] the weights
-  // wb[1] the biases
-  // wb[0][l][i * columns_X + j] weights at layer l=0,...,layers, i'th row j'th column
-  // wb[1][l][j] biases at layer l=0,...,layers always 1 row and j'th column
-  double **weights = init_w(w_variance, layers, nodes, funcs, columns_Y, columns_X);
+  // wb[l][i * columns_X + j] weights at layer l=0,...,layers, i'th row j'th column
+  // wb[l][j] biases at layer l=0,...,layers always 1 row and j'th column
+  weights = init_w(w_variance, layers, nodes, funcs, columns_Y, columns_X);
   
   // If you have already saved weights and biases
 //   double **weights = load_w(layers, nodes, columns_Y, columns_X);

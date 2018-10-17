@@ -13,38 +13,12 @@
 // (stochastic => rows = 1)
 // (mini-batch => rows = rows of mini set)
 
-void cpu_gd_delta(double **restrict deltas,
+void cpu_gd_delta(double **restrict deltas, double **restrict help_1, double **restrict help_2,
                   const int *restrict rows, const int *restrict columns_Y, const int *restrict layers,
-                  double *Y, double ***Z, double **w,
+                  const double *restrict Y, double ***restrict Z, double **restrict w,
                   const int *restrict nodes, const int *restrict funcs)
 {
   int l, i = (*rows) * (*columns_Y) - 1;
-  
-  //////////////////////////////////////////////////////////////////
-  // Gradient of layer's unactivated output
-  double **help_1 = malloc((*layers) * sizeof(double *));
-  // Product of next layer's transposed weights and deltas
-  double **help_2 = malloc((*layers) * sizeof(double *));
-  // We do not need them at the output layer
-  //////////////////////////////////////////////////////////////////
-  if (help_1 && help_2) {
-    for (l = 0; l < (*layers); l++) {
-      help_1[l] = malloc((*rows) * nodes[l] * sizeof(double));
-      help_2[l] = malloc((*rows) * nodes[l] * sizeof(double));
-      if (help_1[l] && help_2[l]) {
-        memset(help_1[l], 0.0, (*rows) * nodes[l] * sizeof(double));
-        memset(help_2[l], 0.0, (*rows) * nodes[l] * sizeof(double));
-      } else {
-        printf(KRED "\nFailed to allocate helpers for delta. Aborting...\n" RESET);
-        free(help_1);
-        free(help_2);
-        return;
-      }
-    }
-  } else {
-    printf(KRED "\nFailed to allocate helpers for delta. Aborting...\n" RESET);
-    return;
-  }
   
   // Last layer
   switch (funcs[(*layers)]) {
@@ -54,10 +28,16 @@ void cpu_gd_delta(double **restrict deltas,
         deltas[(*layers)][i] = Z[1][(*layers)][i] - Y[i];
       } while (--i >= 0);
       break;
+    // Softmax Crossentropy
+    case 4:
+      do {
+        deltas[(*layers)][i] = Z[1][(*layers)][i] - Y[i];
+      } while (--i >= 0);
+      break;
     default:
       gradient(deltas[(*layers)], Z[0][(*layers)], rows, columns_Y, &funcs[(*layers)]);
       do {
-        deltas[(*layers)][i] *= Y[i] - Z[1][(*layers)][i];
+        deltas[(*layers)][i] *= Z[1][(*layers)][i] - Y[i];
       } while (--i >= 0);
       break;
   }
@@ -85,12 +65,6 @@ void cpu_gd_delta(double **restrict deltas,
   
   switch ((*layers) == 1) {
     case 1:
-      for (l = 0; l < (*layers); l++) {
-        free(help_2[l]);
-        free(help_1[l]);
-      }
-      free(help_2);
-      free(help_1);
       return;
     default:
       // All other layers
@@ -115,12 +89,6 @@ void cpu_gd_delta(double **restrict deltas,
           deltas[l][i] = help_1[l][i] * help_2[l][i];
         } while (--i >= 0);
       } while (--l >= 0);
-      for (l = 0; l < (*layers); l++) {
-        free(help_2[l]);
-        free(help_1[l]);
-      }
-      free(help_2);
-      free(help_1);
       return;
   }
 }

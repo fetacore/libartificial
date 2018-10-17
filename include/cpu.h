@@ -34,7 +34,7 @@ extern double PUBLIC_API *cpu_feedforward_predict(const int rows, const int colu
 extern void PUBLIC_API cpu_gd_train(const int rows, const int columns_Y, const int columns_X,
                                     const int batch, const int layers,
                                     const int nodes[layers],
-                                    double *Y, double *X, double **weights,
+                                    const double *Y, const double *X, double **weights,
                                     char funcs[layers + 1][30],
                                     const double learning_rate, const int epochs);
 

@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 void save_w(double **w, const int layers, const int nodes[layers],
-             const int columns_Y, const int columns_X) {
+            const int columns_Y, const int columns_X) {
   
   int l;
   

@@ -45,7 +45,7 @@ void threaded_update(const double *restrict X, const double *restrict delta,
 
 void cpu_gd_train(const int rows, const int columns_Y, const int columns_X,
                   const int batch, const int layers, const int nodes[layers],
-                  double *Y, double *X, double **w,
+                  const double *Y, const double *X, register double **w,
                   char functions[layers + 1][30],
                   const double learning_rate, const int epochs)
 {
@@ -54,7 +54,7 @@ void cpu_gd_train(const int rows, const int columns_Y, const int columns_X,
   // j for columns
   // e for epochs
   int l, i, j, for_helper_w, for_helper_batch, e = epochs;
-  int *funcs;
+  register int *funcs;
   funcs = name2int(layers, functions);
     
   // Multiplication in threads
@@ -71,21 +71,36 @@ void cpu_gd_train(const int rows, const int columns_Y, const int columns_X,
   // For the averaging of deltas in batch/mini-batch
   double correction = 1.0;
   
-  double **deltas = malloc((layers + 1) * sizeof(double *));
+  register double **deltas = malloc((layers + 1) * sizeof(double *));
   // The values to be subtracted from weights
-  double **grad_w = malloc((layers + 1) * sizeof(double *));
-  if (deltas && grad_w) {
+  register double **grad_w = malloc((layers + 1) * sizeof(double *));
+  //////////////////////////////////////////////////////////////////
+  // Gradient of layer's unactivated output
+  double **help_1 = malloc(layers * sizeof(double *));
+  // Product of next layer's transposed weights and deltas
+  double **help_2 = malloc(layers * sizeof(double *));
+  // We do not need them at the output layer
+  //////////////////////////////////////////////////////////////////
+  if (deltas && grad_w && help_1 && help_2) {
     // Allocations
     for (l = layers + 1; l--; ) {
       if (l == 0) {
         for_helper_batch = batch * nodes[l];
         for_helper_w = columns_X * nodes[l];
+        help_1[l] = malloc(batch * nodes[l] * sizeof(double));
+        help_2[l] = malloc(batch * nodes[l] * sizeof(double));
+        memset(help_1[l], 0.0, batch * nodes[l] * sizeof(double));
+        memset(help_2[l], 0.0, batch * nodes[l] * sizeof(double));
       } else if (l == layers) {
         for_helper_batch = batch * columns_Y;
         for_helper_w = nodes[l-1] * columns_Y;
       } else {
         for_helper_batch = batch * nodes[l];
         for_helper_w = nodes[l-1] * nodes[l];
+        help_1[l] = malloc(batch * nodes[l] * sizeof(double));
+        help_2[l] = malloc(batch * nodes[l] * sizeof(double));
+        memset(help_1[l], 0.0, batch * nodes[l] * sizeof(double));
+        memset(help_2[l], 0.0, batch * nodes[l] * sizeof(double));
       }
       deltas[l] = malloc(for_helper_batch * sizeof(double));    
       grad_w[l] = malloc(for_helper_w * sizeof(double));
@@ -93,18 +108,20 @@ void cpu_gd_train(const int rows, const int columns_Y, const int columns_X,
         memset(deltas[l], 0.0, for_helper_batch * sizeof(double));
         memset(grad_w[l], 0.0, for_helper_w * sizeof(double));
       } else {
-        printf(KRED "\nFailed to allocate deltas or gradients. Aborting...\n" RESET);
+        printf(KRED "\nFailed to allocate deltas, gradients or helpers. Aborting...\n" RESET);
         free(deltas);
         free(grad_w);
+        free(help_2);
+        free(help_1);
         return;
       }
     }
   } else {
-    printf(KRED "\nFailed to allocate deltas or gradients. Aborting...\n" RESET);
+    printf(KRED "\nFailed to allocate deltas, gradients or helpers. Aborting...\n" RESET);
     return;
   }
   
-  double ***Z = cpu_feedforward_cache(&rows, &columns_Y, &columns_X, &layers, X, w, nodes, funcs);
+  register double ***Z = cpu_feedforward_cache(&rows, &columns_Y, &columns_X, &layers, X, w, nodes, funcs);
   
   // Big switch in case we have pure batch (do not allocate mini-batches)
   switch (batch == rows) {
@@ -115,10 +132,10 @@ void cpu_gd_train(const int rows, const int columns_Y, const int columns_X,
       // Training
       do {
         // Find deltas
-        cpu_gd_delta(deltas, &rows, &columns_Y, &layers, Y, Z, w, nodes, funcs);
+        cpu_gd_delta(deltas, help_1, help_2, &rows, &columns_Y, &layers, Y, Z, w, nodes, funcs);
         
         // Now we update the weights and biases
-        #pragma omp parallel for
+//         #pragma omp parallel for
         for (l = layers + 1; l--; ) {
           switch (l == 0) {
             case 1:
@@ -161,10 +178,16 @@ void cpu_gd_train(const int rows, const int columns_Y, const int columns_X,
           for (l = 0; l < layers + 1; l++) {
             free(deltas[l]);
             free(grad_w[l]);
+            if (l < layers) {
+              free(help_2[l]);
+              free(help_1[l]);
+            }
           }
           free(deltas);
           free(grad_w);
           free(funcs);
+          free(help_2);
+          free(help_1);
           delete_Z(layers, Z);
           return;
         }
@@ -273,7 +296,7 @@ void cpu_gd_train(const int rows, const int columns_Y, const int columns_X,
           }
           
           // Fill the deltas
-          cpu_gd_delta(deltas, &batch, &columns_Y, &layers, Y_batch[i], Z_batch, w, nodes, funcs);
+          cpu_gd_delta(deltas, help_1, help_2, &batch, &columns_Y, &layers, Y_batch[i], Z_batch, w, nodes, funcs);
           
           // Now we update the weights and biases
 //           #pragma omp parallel for
@@ -323,10 +346,16 @@ void cpu_gd_train(const int rows, const int columns_Y, const int columns_X,
             free(Z_batch[1][l]);
             free(deltas[l]);
             free(grad_w[l]);
+            if (l < layers) {
+              free(help_2[l]);
+              free(help_1[l]);
+            }
           }
           free(Z_batch[0]);
           free(Z_batch[1]);
           free(Z_batch);
+          free(help_2);
+          free(help_1);
           free(deltas);
           free(grad_w);
           
@@ -369,9 +398,15 @@ void cpu_gd_train(const int rows, const int columns_Y, const int columns_X,
   for (l = 0; l < layers + 1; l++) {
     free(deltas[l]);
     free(grad_w[l]);
+    if (l < layers) {
+      free(help_2[l]);
+      free(help_1[l]);
+    }
   }
   free(deltas);
   free(grad_w);
   free(funcs);
+  free(help_2);
+  free(help_1);
   delete_Z(layers, Z);
 }

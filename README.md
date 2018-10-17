@@ -2,7 +2,7 @@
 
 This is a small pure C shared library for arbitrarily deep neural networks. It is my first attempt to write a scientific project in C but the speed is already outstanding. I made this library in order to assist me with my doctoral research.
 
-It is CPU ([OpenBLAS](https://github.com/xianyi/OpenBLAS)) and GPU ([CLBlast](https://github.com/CNugteren/CLBlast)) friendly (soon with support for cuBLAS if I get my hands on an NVIDIA GPU). I have plans to extend it for CNNs and RNNs.
+It is CPU ([OpenBLAS](https://github.com/xianyi/OpenBLAS)) only (soon with support for cuBLAS if I get my hands on an NVIDIA GPU). I have plans to extend it for CNNs.
 
 ## Bindings
 
@@ -27,11 +27,10 @@ rm -rf .git
 ### Prerequisites
 
 In order to compile the library for CPU you need to install [OpenBLAS](https://github.com/xianyi/OpenBLAS).
-In order to compile the library for GPU you need to install [CLBlast](https://github.com/CNugteren/CLBlast).
 
 ## Specifics for OpenBLAS
 
-Since libartificial is multithreaded, we need to compile OpenBLAS with USE_OPENMP=1. The library assumes that OpenBLAS is in the libartificial folder under the folder name "openblas".
+You need to compile OpenBLAS with USE_OPENMP=1. The library assumes that OpenBLAS is in the libartificial folder under the folder name "openblas".
 You do the following:
 
 ```
@@ -41,34 +40,12 @@ cd ../
 
 ```
 
-## Specifics for CLBlast
-
-It is recommended to do the optimizations proposed by the author. The library assumes that CLBlast is in the libartificial folder under the name "clblast".
-You do the following:
-
-```
-git clone https://github.com/CNugteren/CLBlast.git clblast
-cd clblast && mkdir build && cd build
-cmake .. && make
-cd ../../
-
-```
-
-You should also take note that the library uses doubles and not all GPUs support double arithmetic in OpenCL.
-
 ### Compilation
 
 In order to compile the library do the following (assuming you continue from where we left off)
 
-- For CPU
-
 ```
-make cpu
-```
-- For GPU
-
-```
-make gpu
+make
 ```
 
 ## Examples
@@ -80,7 +57,7 @@ For the time being I have four examples which you can find in the "examples" fol
 make test1
 ```
 
-- MLP regression with GPU
+- MLP classification
 
 ```
 make test2

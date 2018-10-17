@@ -10,7 +10,7 @@ void gradient(double *restrict X_graded, const double *restrict X,
   switch ((*function)) {
     
     // Relu
-    case 0: {
+    case 0:
       do {
         switch (X[i] < 0.0) {
           case 1:
@@ -22,7 +22,6 @@ void gradient(double *restrict X_graded, const double *restrict X,
         }
       } while (--i >= 0);
       return;
-    }
     
     // Logistic
     case 1: {
@@ -35,10 +34,9 @@ void gradient(double *restrict X_graded, const double *restrict X,
     }
     
     // Linear
-    case 2: {
+    case 2:
       memset(X_graded, 1.0, (i + 1) * sizeof(double));
       return;
-    }
     
     // Tanh
     case 3: {
@@ -82,7 +80,7 @@ void gradient(double *restrict X_graded, const double *restrict X,
     }
     
     // Lrelu
-    case 5: {
+    case 5:
       do {
         switch (X[i] < 0.0) {
           case 1:
@@ -94,21 +92,18 @@ void gradient(double *restrict X_graded, const double *restrict X,
         }
       } while (--i >= 0);
       return;
-    }
     
     // Softplus
-    case 6: {
+    case 6:
       do {
         X_graded[i] = 1/(1 + exp(-X[i]));
       } while (--i >= 0);
       return;
-    }
     
     // Softsign
     case 7: {
       double y;
       do {
-        // abuse of notation
         y = 1 + fabs(X[i]);
         X_graded[i] = 1/(y * y);
       } while (--i >= 0);
@@ -116,12 +111,11 @@ void gradient(double *restrict X_graded, const double *restrict X,
     }
     
     // Arctan
-    case 8: {
+    case 8:
       do {
         X_graded[i] = 1/(X[i] * X[i] + 1);
       } while (--i >= 0);
       return;
-    }
     
     // Isru
     case 9: {
@@ -164,15 +158,14 @@ void gradient(double *restrict X_graded, const double *restrict X,
     }
     
     // Sinus
-    case 12: {
+    case 12:
       do {
         X_graded[i] = cos(X[i]);
       } while (--i >= 0);
       return;
-    }
     
     // Sinusc
-    case 13: {
+    case 13:
       do {
         switch (X[i] == 0.0) {
           case 1:
@@ -184,14 +177,12 @@ void gradient(double *restrict X_graded, const double *restrict X,
         }
       } while (--i >= 0);
       return;
-    }
     
     // Gauss
-    default: {
+    default:
       do {
         X_graded[i] = -2.0 * X[i] * exp(-(X[i] * X[i]));
       } while (--i >= 0);
       return;
-    }
   }
 }

@@ -15,8 +15,8 @@ int main(void)
   // The model
   ///////////////////////////////////////////////////////////////////////////
   const int columns_X = 3;
-  const int columns_Y = 2;
-  const int rows = 2;
+  const int columns_Y = 30;
+  const int rows = 1024;
   
   double *X = malloc(rows * columns_X * sizeof(double));
   int random_prob_one;
@@ -51,10 +51,10 @@ int main(void)
   
   // Hyperparameters
   ///////////////////////////////////////////////////////////////////////////
-  const int batch = 1; // Divisor of 1024
+  const int batch = 256; // Divisor of 1024
   const double w_variance = 1; // For the weight initialization
-  const double learning_rate = 0.001;
-  const int epochs = 50000;
+  const double learning_rate = 0.0001;
+  const int epochs = 500;
   
   //   const int layers = 7;
   //   const int nodes[7] = {308, 293, 392, 563, 445, 392, 481};
@@ -87,7 +87,7 @@ int main(void)
 //     };
   
   const int layers = 1;
-  const int nodes[1] = {2};
+  const int nodes[1] = {200};
   char funcs[2][30] = {
     "logistic",
     "softmax"
@@ -118,13 +118,20 @@ int main(void)
   
   double *Z = cpu_feedforward_predict(rows, columns_Y, columns_X, layers, X, weights, nodes, funcs);
   
-  for (i = 0; i < rows; i++) {
-    printf("\n");
-    for (j = 0; j < columns_Y; j++) {
-      printf("%f\t", Z[i * columns_Y + j]);
-    }
-    printf("\n");
-  }
+//   for (i = 0; i < rows; i++) {
+//     printf("\n");
+//     for (j = 0; j < columns_Y; j++) {
+//       printf("%f\t", Y[i * columns_Y + j]);
+//     }
+//     printf("\n");
+//   }
+//   for (i = 0; i < rows; i++) {
+//     printf("\n");
+//     for (j = 0; j < columns_Y; j++) {
+//       printf("%f\t", Z[i * columns_Y + j]);
+//     }
+//     printf("\n");
+//   }
   
   ////////////////////////////////////////////////////////////
   // Freeing stuff
