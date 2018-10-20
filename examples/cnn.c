@@ -1,21 +1,48 @@
+/*
+ * libartificial - Small header-only C library for Artificial Neural Networks
+ * 
+ * Copyright (c) 2018 Jim Karoukis
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ */
+
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
-#include "../src/headers/utils.h"
-
-#define training_images 40000
-#define test_images 400
-#define width 7 // pixels_x (columns)
-#define height 5 // pixels_y (rows)
-// RGB = 3 dimensions
-// RGB range = 0 -> 255
-#define depth 3 // channels (color or bnw)
-#define labels 10
+#include "../libartificial.h"
 
 int main(void) {
   
   srand(time(NULL));
+  const int training_images = 40000;
+  const int test_images = 400;
+  const int width = 7; // pixels_x (columns)
+  const int height = 5; // pixels_y (rows)
+  // RGB = 3 dimensions
+  // RGB range = 0 -> 255
+  const int depth = 3; // channels (color or bnw)
+  const int labels = 10;
+  
   
   int i, j, rgb, random_prob_one;
   
@@ -74,17 +101,17 @@ int main(void) {
   ///////////////////////////////////////////////////////////////////////////
   // Hyperparameters
   ///////////////////////////////////////////////////////////////////////////
-  int filters = 2;
-  int spatial_extent = 2;
-  int stride = 1;
-  int padding = 1;
-  int dilation = 0;
-  double w_variance = 0.01;
+//   const int filters = 2;
+  const int spatial_extent = 2;
+  const int stride = 1;
+  const int padding = 1;
+//   const int dilation = 0;
+//   const double w_variance = 0.01;
   ///////////////////////////////////////////////////////////////////////////
   // User specific
   
   // After vectorization
-  int delete_originals = 1;
+  const int delete_originals = 1;
   ///////////////////////////////////////////////////////////////////////////
   
   // How many layers is #conv operations X filters
@@ -119,10 +146,10 @@ int main(void) {
   
   // Training
   
-  int **train_imgs_vector = im2col(imgdata_train, training_images, width, height, depth, spatial_extent, stride, padding,
-                                   delete_originals);
-//   int **test_imgs_vector = im2col(imgdata_test, test_images, width, height, depth, spatial_extent, stride, padding,
-//                                   delete_originals);
+  int **train_imgs_vector = im2col(imgdata_train, &training_images, &width, &height,
+                                   &depth, &spatial_extent, &stride, &padding, &delete_originals);
+//   int **test_imgs_vector = im2col(imgdata_test, &test_images, &width, &height,
+//                                   &depth, &spatial_extent, &stride, &padding, &delete_originals);
   
   // Freedom
   if (delete_originals == 0) {
@@ -142,8 +169,8 @@ int main(void) {
     }
     free(imgdata_test);
   }
-  delete_img_vector(train_imgs_vector, training_images);
-//   delete_img_vector(test_imgs_vector, test_images);
+  delete_img_vector(&training_images, train_imgs_vector);
+  //   delete_img_vector(&test_images, test_imgs_vector);
   free(training_label_values);
   free(test_label_values);
   return 0;
