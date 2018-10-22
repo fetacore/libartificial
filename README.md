@@ -1,8 +1,8 @@
 # libartificial
 
-This is a small pure C header-only library for arbitrarily deep neural networks. It is my first attempt to write a scientific project in C but the speed is already outstanding. I made this library in order to assist me with my doctoral research.
+This is a small pure C header-only, zero-dependency library for arbitrarily deep neural networks. It is my first attempt to write a scientific project in C but the speed is already outstanding. I made this library in order to assist me with my doctoral research.
 
-It is CPU only (soon with support for cuBLAS if I get my hands on an NVIDIA GPU). I have plans to extend it for CNNs.
+It is CPU only (soon with support for cuBLAS and cuDNN if I get my hands on an NVIDIA GPU). I have plans to extend it for CNNs.
 
 ## Bindings
 
@@ -24,11 +24,6 @@ git clone --recurse-submodules -j8 https://github.com/fetacore/libartificial.git
 cd libartificial
 rm -rf .git
 ```
-
-### Prerequisites
-
-In order to compile the examples (and any other program using the header) for CPU you need to build [OpenBLAS](https://github.com/xianyi/OpenBLAS).
-In order to check the procedure for your machine go to the project's [wiki](https://github.com/xianyi/OpenBLAS/wiki/Installation-Guide).
 
 ## Examples
 

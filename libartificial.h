@@ -45,7 +45,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <time.h>
-#include "./OpenBLAS/cblas.h"
 
 #define KRED "\x1B[31m"
 #define KGRN  "\x1B[32m"
@@ -104,6 +103,9 @@ static inline void delete_img_vector(const int *restrict no_of_images, int **res
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Feedforward pass
+static inline void cpu_mm_notrans(const double *restrict A, const double *restrict B, double *restrict C,
+                                  const int *restrict rows, const int *restrict cols, const int *restrict coms);
+
 static inline void cpu_feedforward_update(const int *restrict r, const int *restrict cY,
                                           const int *restrict cX, const int *restrict layers,
                                           double ***restrict Z,
@@ -115,11 +117,13 @@ static inline double ***cpu_feedforward_cache(const int *restrict r, const int *
                                               const double *restrict X, double **restrict w,
                                               const int *restrict n, const int *restrict f);
 // Deltas
+static inline void cpu_mm_notrans_trans(const double *restrict A, const double *restrict B, double *restrict C,
+                                        const int *restrict rows, const int *restrict cols, const int *restrict coms);
+
 static inline void cpu_gd_delta(double **restrict d, double **restrict h1, double **restrict h2,
                                 const int *restrict r, const int *restrict c, const int *restrict layers,
                                 const double *restrict Y, double ***restrict Z, double **restrict w,
                                 const int *restrict n, const int *restrict f);
-
 // returns new wb
 static inline void cpu_threaded_update(const double *restrict X, const double *restrict d,
                                        double *restrict gw,
@@ -480,10 +484,6 @@ static inline void PUBLIC_API cpu_gd_train(const int *restrict rows,
   int l, i, for_helper_w, for_helper_batch, e = (*epochs), r_over_b = (*rows)/(*batch);
   register int *f;
   f = name2int(layers, funcs);
-  
-  // Multiplication in threads
-  openblas_set_num_threads(1);
-  goto_set_num_threads(1);
   
   double loss = 0.0;
   
@@ -1529,6 +1529,21 @@ static inline void delete_img_vector(const int *restrict no_of_images, int **res
   free(images);
 }
 
+static inline void cpu_mm_notrans(const double *restrict A, const double *restrict B, double *restrict C,
+                                  const int *restrict rows, const int *restrict cols, const int *restrict coms)
+{
+  memset(C, 0.0, (*rows) * (*cols) * sizeof(double));
+  double A_i;
+  for (int i = (*rows); i--; ) {
+    for (int k = (*coms); k--; ) {
+      A_i = A[i * (*coms) + k];
+      for (int j = (*cols); j--; ) {
+        C[i * (*cols) + j] += A_i * B[k * (*cols) + j];
+      }
+    }
+  }
+}
+
 static inline void cpu_feedforward_update(const int *restrict r, const int *restrict cY,
                                           const int *restrict cX, const int *restrict layers,
                                           double ***restrict Z,
@@ -1540,15 +1555,7 @@ static inline void cpu_feedforward_update(const int *restrict r, const int *rest
   do {
     switch (l == 0) {
       case 1:
-        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-                    (*r), // Rows of z[0][l][0][j]
-                    n[l], // Columns of z[0][l][0][j]
-                    (*cX), // columns of A, rows of B
-                    1.0, // scaling factor (none)
-                    X, (*cX), // C = A * B -> matrix A, ldA
-                    w[l], n[l], // C = A * B -> matrix B, ldB
-                    0.0, // scaling factor for C (none)
-                    Z[0][l], n[l]); // C, ldC
+        cpu_mm_notrans(X, w[l], Z[0][l], r, &n[l], cX);
         activate(Z[1][l], Z[0][l], r, &n[l], &f[l]);
         ++l;
         continue;
@@ -1557,15 +1564,7 @@ static inline void cpu_feedforward_update(const int *restrict r, const int *rest
     }
     switch (l > 0 && l < (*layers)) {
       case 1:
-        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-                    (*r), // Rows of z[0][l][i][j]
-                    n[l], // Columns of z[0][l][i][j]
-                    n[l-1], // columns of A, rows of B
-                    1.0, // scaling factor (none)
-                    Z[1][l-1], n[l-1], // C = A * B -> matrix A, ldA
-                    w[l], n[l], // C = A * B -> matrix B, ldB
-                    0.0, // scaling factor for C (none)
-                    Z[0][l], n[l]); // C, ldC
+        cpu_mm_notrans(Z[1][l-1], w[l], Z[0][l], r, &n[l], &n[l-1]);
         activate(Z[1][l], Z[0][l], r, &n[l], &f[l]);
         ++l;
         continue;
@@ -1574,15 +1573,7 @@ static inline void cpu_feedforward_update(const int *restrict r, const int *rest
     }
     switch (l == (*layers)) {
       case 1:
-        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-                    (*r), // Rows of z[0][l][i][j]
-                    (*cY), // Columns of z[0][l][0][j]
-                    n[l-1], // columns of A, rows of B
-                    1.0, // scaling factor (none)
-                    Z[1][l-1], n[l-1], // C = A * B -> matrix A, ldA
-                    w[l], (*cY), // C = A * B -> matrix B, ldB
-                    0.0, // scaling factor for C (none)
-                    Z[0][l], (*cY)); // C, ldC
+        cpu_mm_notrans(Z[1][l-1], w[l], Z[0][l], r, cY, &n[l-1]);
         activate(Z[1][l], Z[0][l], r, cY, &f[l]);
         return;
     }
@@ -1643,6 +1634,19 @@ static inline double ***cpu_feedforward_cache(const int *restrict r, const int *
   return Z;
 }
 
+static inline void cpu_mm_notrans_trans(const double *restrict A, const double *restrict B, double *restrict C,
+                                        const int *restrict rows, const int *restrict cols, const int *restrict coms)
+{
+  memset(C, 0.0, (*rows) * (*cols) * sizeof(double));
+  for (int i = (*rows); i--; ) {
+    for (int j = (*cols); j--; ) {
+      for (int k = (*coms); k--; ) {
+        C[i * (*cols) + j] += A[i * (*coms) + k] * B[j * (*coms) + k];
+      }
+    }
+  }
+}
+
 static inline void cpu_gd_delta(double **restrict d, double **restrict h1, double **restrict h2,
                                 const int *restrict r, const int *restrict c, const int *restrict layers,
                                 const double *restrict Y, double ***restrict Z, double **restrict w,
@@ -1674,15 +1678,7 @@ static inline void cpu_gd_delta(double **restrict d, double **restrict h1, doubl
   l = (*layers) - 1;
   i = (*r) * n[l] - 1;
   gradient(h1[l], Z[0][l], r, &n[l], &f[l]);
-  cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
-              (*r), // Rows of help_2[0][j]
-              n[l], // Columns of help_2[0][j]
-              (*c), // columns of A, rows of B
-              1.0, // scaling factor (none)
-              d[l+1], (*c), // C = A * B -> matrix A, ldA
-              w[l+1], (*c), // C = A * B -> matrix B, ldB
-              0.0, // scaling factor for C (none)
-              h2[l], n[l]); // C, ldC
+  cpu_mm_notrans_trans(d[l+1], w[l+1], h2[l], r, &n[l], c);
   // Hadamard product
   do {
     d[l][i] = h1[l][i] * h2[l][i];
@@ -1696,15 +1692,7 @@ static inline void cpu_gd_delta(double **restrict d, double **restrict h1, doubl
       do {
         i = (*r) * n[l] - 1;
         gradient(h1[l], Z[0][l], r, &n[l], &f[l]);
-        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
-                    (*r), // Rows of help_2[0][j]
-                    n[l], // Columns of help_2[0][j]
-                    n[l+1], // columns of A, rows of B
-                    1.0, // scaling factor (none)
-                    d[l+1], n[l+1], // C = A * B -> matrix A, ldA
-                    w[l+1], n[l+1], // C = A * B -> matrix B,  ldB
-                    0.0, // scaling factor for C (none)
-                    h2[l], n[l]); // C, ldC
+        cpu_mm_notrans_trans(d[l+1], w[l+1], h2[l], r, &n[l], &n[l+1]);
         // Hadamard product
         do {
           d[l][i] = h1[l][i] * h2[l][i];
@@ -1724,17 +1712,19 @@ static inline void cpu_threaded_update(const double *restrict X, const double *r
                                        const double *restrict c)
 {  
   int i = (*m) * (*n) - 1;
-  cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
-              (*m), // Rows of grad_w[l]
-              (*n), // Columns of grad_w[l]
-              (*k), // columns of A, rows of B
-              (*c), // scaling factor
-              X, (*m), // C = A * B -> matrix A, ldA
-              d, (*n), // C = A * B -> matrix B, ldB
-              0.0, // scaling factor for C (none)
-              gw, (*n)); // C, ldC
+  memset(gw, 0.0, (*m) * (*n) * sizeof(double));
+  double A_i;
+  for (int com = (*k); com--; ) {
+    for (int row = (*m); row--; ) {
+      A_i = X[com * (*m) + row];
+      for (int col = (*n); col--; ) {
+        gw[row * (*n) + col] += A_i * d[com * (*n) + col];
+      }
+    }
+  }
+
   do {
-    w[i] -= gw[i];
+    w[i] -= (*c) * gw[i];
   } while (--i >= 0);
 }
 
