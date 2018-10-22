@@ -20,7 +20,7 @@ I will try to compile an example with Visual Studio and get back to you on how t
 In order to get libartificial you have to do the following (assuming working installation of git)
 
 ```
-git clone --recurse-submodules -j8 https://github.com/fetacore/libartificial.git
+git clone https://github.com/fetacore/libartificial.git
 cd libartificial
 rm -rf .git
 ```
